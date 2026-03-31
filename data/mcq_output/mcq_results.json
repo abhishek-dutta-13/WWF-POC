@@ -1,0 +1,566 @@
+{
+  "agriculture": [
+    {
+      "category": "agriculture",
+      "set_number": 1,
+      "questions": [
+        {
+          "question": "What is the primary goal of agricultural sustainability?",
+          "options": {
+            "A": "To increase crop yields without considering environmental impact",
+            "B": "To balance productivity with environmental preservation and social fairness",
+            "C": "To reduce the use of synthetic inputs in farming",
+            "D": "To promote the use of genetically modified organisms (GMOs) in agriculture"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because agricultural sustainability aims to meet current food needs without compromising the ability of future generations to meet their own needs, while also considering environmental and social factors."
+        },
+        {
+          "question": "What is agroecology?",
+          "options": {
+            "A": "A farming practice that emphasizes the use of chemical pesticides and fertilizers",
+            "B": "An approach that applies ecological principles to agricultural systems",
+            "C": "A method of farming that prioritizes economic viability over environmental concerns",
+            "D": "A technique for reducing soil compaction through heavy machinery"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because agroecology is an approach that applies ecological principles to agricultural systems, enhancing biodiversity, soil quality, and natural pest regulation."
+        },
+        {
+          "question": "What is the benefit of reduced soil compaction in agriculture?",
+          "options": {
+            "A": "Increased use of heavy machinery on farmland",
+            "B": "Improved water infiltration and groundwater recharge",
+            "C": "Reduced crop yields due to decreased soil disturbance",
+            "D": "Increased reliance on synthetic inputs for farming"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because reduced soil compaction helps preserve the volume of soil pores, improving water infiltration and groundwater recharge, while also supporting ecosystem health and biodiversity."
+        },
+        {
+          "question": "What is the purpose of precision farming in sustainable agriculture?",
+          "options": {
+            "A": "To increase the use of chemical pesticides and fertilizers in farming",
+            "B": "To optimize resource use and reduce waste through data-driven tools",
+            "C": "To promote the use of genetically modified organisms (GMOs) in agriculture",
+            "D": "To reduce the use of technology in farming practices"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because precision farming employs data-driven tools to optimize resource use and reduce waste, enhancing productivity with minimal environmental impact."
+        },
+        {
+          "question": "Why is crop rotation important in sustainable agriculture?",
+          "options": {
+            "A": "To reduce the diversity of crops and promote monocultures",
+            "B": "To increase the use of synthetic inputs and chemical pesticides",
+            "C": "To maintain soil health and biodiversity while reducing dependence on external inputs",
+            "D": "To prioritize economic viability over environmental concerns"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because crop rotation helps maintain soil health and biodiversity, reducing the need for synthetic inputs and chemical pesticides, while also supporting ecosystem resilience and agricultural productivity."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "agriculture",
+      "set_number": 2,
+      "questions": [
+        {
+          "question": "What is the primary goal of agricultural sustainability?",
+          "options": {
+            "A": "To increase crop yields at any cost",
+            "B": "To balance productivity with environmental preservation and social fairness",
+            "C": "To reduce the use of synthetic fertilizers only",
+            "D": "To promote the use of genetically modified organisms (GMOs)"
+          },
+          "correct_answer": "B",
+          "explanation": "The primary goal of agricultural sustainability is to balance productivity with environmental preservation and social fairness, ensuring that current food needs are met without compromising the ability of future generations to meet their own needs."
+        },
+        {
+          "question": "What is the main benefit of agroecology in sustainable agriculture?",
+          "options": {
+            "A": "Increased use of chemical pesticides",
+            "B": "Improved crop yields through the use of GMOs",
+            "C": "Enhanced biodiversity, soil quality, and natural pest regulation",
+            "D": "Reduced water retention in the soil"
+          },
+          "correct_answer": "C",
+          "explanation": "Agroecology applies ecological principles to agricultural systems, enhancing biodiversity, soil quality, and natural pest regulation, leading to sustainable production practices that maintain ecosystem integrity."
+        },
+        {
+          "question": "What is the role of precision farming in sustainable agriculture?",
+          "options": {
+            "A": "To increase the use of synthetic fertilizers and pesticides",
+            "B": "To employ data-driven tools to optimize resource use and reduce waste",
+            "C": "To promote the use of conventional tillage methods",
+            "D": "To reduce crop rotation and diversification"
+          },
+          "correct_answer": "B",
+          "explanation": "Precision farming employs data-driven tools, such as sensors, GPS mapping, and remote sensing, to optimize resource use and reduce waste, enhancing productivity with minimal environmental impact."
+        },
+        {
+          "question": "What is the main challenge in implementing reduced soil compaction measures in agriculture?",
+          "options": {
+            "A": "Lack of technology, such as tire pressure control systems",
+            "B": "Insufficient storage capacity for liquid manure",
+            "C": "Time pressure faced by farmers to complete field work",
+            "D": "All of the above"
+          },
+          "correct_answer": "D",
+          "explanation": "The main challenges in implementing reduced soil compaction measures in agriculture include the lack of necessary technology, limited storage capacity for liquid manure, and time pressure faced by farmers, which can conflict with the need to avoid soil compaction."
+        },
+        {
+          "question": "What is the benefit of reduced soil compaction in agriculture?",
+          "options": {
+            "A": "Increased soil erosion and runoff",
+            "B": "Reduced water retention in the soil",
+            "C": "Improved water infiltration, groundwater recharge, and crop yields",
+            "D": "Decreased biodiversity and ecosystem health"
+          },
+          "correct_answer": "C",
+          "explanation": "Reduced soil compaction leads to improved water infiltration, groundwater recharge, and crop yields, as well as enhanced biodiversity and ecosystem health, by preserving the soil's pore structure and promoting root growth and nutrient uptake."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "agriculture",
+      "set_number": 3,
+      "questions": [
+        {
+          "question": "What is the primary goal of agricultural sustainability?",
+          "options": {
+            "A": "To increase crop yields at any cost",
+            "B": "To balance productivity with environmental preservation and social fairness",
+            "C": "To reduce the use of synthetic inputs",
+            "D": "To promote monocultures"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because agricultural sustainability aims to meet current food needs without compromising the ability of future generations to meet their own needs, while also considering environmental and social aspects."
+        },
+        {
+          "question": "What approach applies ecological principles to agricultural systems to enhance biodiversity and soil quality?",
+          "options": {
+            "A": "Organic farming",
+            "B": "Precision farming",
+            "C": "Agroecology",
+            "D": "Conservation tillage"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because agroecology is an approach that applies ecological principles to agricultural systems, focusing on enhancing biodiversity, soil quality, and natural pest regulation."
+        },
+        {
+          "question": "What is the purpose of precision farming in sustainable agriculture?",
+          "options": {
+            "A": "To reduce crop yields",
+            "B": "To increase the use of synthetic inputs",
+            "C": "To optimize resource use and reduce waste",
+            "D": "To promote monocultures"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because precision farming employs data-driven tools to optimize resource use and reduce waste, thereby enhancing productivity with minimal environmental impact."
+        },
+        {
+          "question": "What is a key benefit of reduced soil compaction in agricultural fields?",
+          "options": {
+            "A": "Increased soil erosion",
+            "B": "Reduced water retention",
+            "C": "Improved water infiltration and groundwater recharge",
+            "D": "Decreased crop yields"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because reduced soil compaction helps preserve the soil's pore structure, leading to improved water infiltration and groundwater recharge, which in turn supports ecosystem health and agricultural productivity."
+        },
+        {
+          "question": "What is the main objective of sustainable agriculture?",
+          "options": {
+            "A": "To prioritize economic viability over environmental concerns",
+            "B": "To ensure food security while protecting the environment",
+            "C": "To promote the use of synthetic inputs",
+            "D": "To reduce crop diversity"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because sustainable agriculture aims to ensure food security while also protecting the environment, conserving natural resources, and promoting social equity."
+        }
+      ],
+      "total_questions": 5
+    }
+  ],
+  "climate": [
+    {
+      "category": "climate",
+      "set_number": 1,
+      "questions": [
+        {
+          "question": "What does the word climate mean?",
+          "options": {
+            "A": "Short-term weather patterns for a particular area",
+            "B": "Long-term weather patterns for a particular area",
+            "C": "The temperature of a specific region",
+            "D": "The humidity of a specific region"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because climate refers to the long-term weather patterns for a particular area, taking into account factors like temperature, humidity, and precipitation over a long period of time."
+        },
+        {
+          "question": "What is the main cause of climate change?",
+          "options": {
+            "A": "Natural disasters like earthquakes and hurricanes",
+            "B": "Human activities like burning fossil fuels and deforestation",
+            "C": "Changes in the Earth's orbit",
+            "D": "Volcanic eruptions"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because human activities like burning fossil fuels, deforestation, and land-use changes release large amounts of greenhouse gases, such as carbon dioxide, into the atmosphere, leading to global warming and climate change."
+        },
+        {
+          "question": "What is the expected outcome if climate change continues unchecked?",
+          "options": {
+            "A": "A decrease in global temperatures",
+            "B": "No significant impact on the environment",
+            "C": "Rising sea levels, more severe weather events, and loss of biodiversity",
+            "D": "An increase in polar ice caps"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because if climate change continues unchecked, it is expected to lead to rising sea levels, more frequent and severe weather events, and a loss of biodiversity as ecosystems are disrupted and species are unable to adapt."
+        },
+        {
+          "question": "Why is it important to teach climate change in primary education?",
+          "options": {
+            "A": "So that students can learn about a distant problem that doesn't affect them",
+            "B": "So that students can understand the science and geography behind climate change and take action to protect the planet",
+            "C": "So that students can learn about a topic that is only relevant to older students",
+            "D": "So that students can learn about a topic that is not relevant to their daily lives"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because teaching climate change in primary education is important so that students can understand the science and geography behind it, and take action to protect the planet, as they will be the decision-makers of the future."
+        },
+        {
+          "question": "What is the term used to describe the process of the Earth's temperature increasing due to human activities?",
+          "options": {
+            "A": "Global cooling",
+            "B": "Climate stability",
+            "C": "Climate change",
+            "D": "Global warming"
+          },
+          "correct_answer": "D",
+          "explanation": "The correct answer is D because global warming refers to the long-term rise in the average surface temperature of the Earth due to human activities, particularly the emission of greenhouse gases from burning fossil fuels, deforestation, and other activities."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "climate",
+      "set_number": 2,
+      "questions": [
+        {
+          "question": "What does the term 'climate' refer to?",
+          "options": {
+            "A": "Short-term weather patterns",
+            "B": "Long-term weather patterns",
+            "C": "The movement of the ocean",
+            "D": "The Earth's tilt"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because climate refers to the long-term weather patterns for a particular area."
+        },
+        {
+          "question": "What is the main cause of climate change?",
+          "options": {
+            "A": "Natural disasters",
+            "B": "Human activities",
+            "C": "Animal behavior",
+            "D": "Plant growth"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because human activities, such as burning fossil fuels and deforestation, release greenhouse gases that contribute to climate change."
+        },
+        {
+          "question": "What is the expected outcome if climate change continues?",
+          "options": {
+            "A": "A decrease in global temperature",
+            "B": "No significant changes to the environment",
+            "C": "An increase in extreme weather events",
+            "D": "The disappearance of all species"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because climate change is expected to lead to more frequent and severe heatwaves, floods, and other extreme weather events."
+        },
+        {
+          "question": "Why is it important to teach climate change in primary education?",
+          "options": {
+            "A": "To scare children about the future",
+            "B": "To make them feel guilty about their carbon footprint",
+            "C": "To empower them to take action and make a positive impact",
+            "D": "To ignore the issue altogether"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because teaching climate change in primary education aims to educate and empower children to understand the issue and take action to mitigate its effects."
+        },
+        {
+          "question": "What is the term for the process of the Earth's temperature increasing?",
+          "options": {
+            "A": "Climate shift",
+            "B": "Global cooling",
+            "C": "Climate change",
+            "D": "Global warming"
+          },
+          "correct_answer": "D",
+          "explanation": "The correct answer is D because global warming refers to the process of the Earth's temperature increasing, although climate change is often used interchangeably to describe the broader effects of this warming."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "climate",
+      "set_number": 3,
+      "questions": [
+        {
+          "question": "What does the word climate mean?",
+          "options": {
+            "A": "The weather on a particular day",
+            "B": "The long-term weather patterns for a particular area",
+            "C": "The temperature of the Earth",
+            "D": "The amount of rainfall in a year"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the word climate refers to the long-term weather patterns for a particular area, not just the weather on a particular day."
+        },
+        {
+          "question": "Why is climate change happening?",
+          "options": {
+            "A": "Because of natural disasters",
+            "B": "Because of human activities",
+            "C": "Because of animal behavior",
+            "D": "Because of the movement of the Earth"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because climate change is happening because of human activities, such as burning fossil fuels and releasing greenhouse gases into the atmosphere."
+        },
+        {
+          "question": "What is one of the effects of climate change?",
+          "options": {
+            "A": "The melting of glaciers",
+            "B": "The formation of new oceans",
+            "C": "The increase in biodiversity",
+            "D": "The decrease in sea levels"
+          },
+          "correct_answer": "A",
+          "explanation": "The correct answer is A because one of the effects of climate change is the melting of Arctic sea ice and glaciers, which contributes to rising sea levels."
+        },
+        {
+          "question": "Who will be most affected by climate change?",
+          "options": {
+            "A": "The richest countries",
+            "B": "The poorest countries",
+            "C": "Countries with the most advanced technology",
+            "D": "Countries with the largest populations"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the poorest countries will be most affected by climate change, as they have limited resources to adapt to its impacts and are often more vulnerable to extreme weather events."
+        },
+        {
+          "question": "What can individuals do to help tackle climate change?",
+          "options": {
+            "A": "Wait for governments to take action",
+            "B": "Reduce their carbon footprint and take action in their daily lives",
+            "C": "Focus only on reducing waste",
+            "D": "Only use renewable energy"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because individuals can help tackle climate change by reducing their carbon footprint and taking action in their daily lives, such as using public transport, reducing energy consumption, and supporting organizations that work on climate change issues."
+        }
+      ],
+      "total_questions": 5
+    }
+  ],
+  "renewable_energy": [
+    {
+      "category": "renewable_energy",
+      "set_number": 1,
+      "questions": [
+        {
+          "question": "What is the main goal of the energy transformation mentioned in the report?",
+          "options": {
+            "A": "To increase the use of fossil fuels",
+            "B": "To reduce the impact of energy development on nature and communities",
+            "C": "To decrease the global energy demand",
+            "D": "To promote the use of nuclear energy"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report emphasizes the need for a nature-positive energy transformation that minimizes the risks to ecosystems and communities."
+        },
+        {
+          "question": "What is the name of the coalition established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system?",
+          "options": {
+            "A": "CLEANaction",
+            "B": "WWF",
+            "C": "BCG",
+            "D": "IPCC"
+          },
+          "correct_answer": "A",
+          "explanation": "The correct answer is A because the report mentions that the Coalition Linking Energy And Nature for action (CLEANaction) was established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system."
+        },
+        {
+          "question": "According to the report, what is the expected outcome of an energy system powered by renewables compared to a fossil fuel-dominated energy system?",
+          "options": {
+            "A": "2-16 times worse for nature and people",
+            "B": "2-16 times better for nature and people",
+            "C": "Similar to a fossil fuel-dominated energy system",
+            "D": "10 times worse for nature and people"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report states that an energy system powered by renewables will be 2-16 times better for nature and people than a fossil fuel-dominated energy system."
+        },
+        {
+          "question": "What is the name of the scenario that limits warming to 1.5°C with limited overshoot through the rapid scale-up of renewable energy, electrification, and energy efficiency improvements?",
+          "options": {
+            "A": "Business-as-Usual (BAU) scenario",
+            "B": "Rapid Transition (RT) scenario",
+            "C": "Low-Carbon Economy scenario",
+            "D": "Sustainable Development scenario"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report mentions that the Rapid Transition (RT) scenario limits warming to 1.5°C with limited overshoot through the rapid scale-up of renewable energy, electrification, and energy efficiency improvements."
+        },
+        {
+          "question": "What is the main purpose of the framework presented in Section 2 of the report?",
+          "options": {
+            "A": "To assess the impact of two different energy scenarios on nature and society",
+            "B": "To provide a framework for achieving a nature-positive energy transformation",
+            "C": "To promote the use of fossil fuels",
+            "D": "To decrease the global energy demand"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report states that Section 2 presents a framework for achieving a nature-positive energy transformation."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "renewable_energy",
+      "set_number": 2,
+      "questions": [
+        {
+          "question": "What is the main goal of building a nature-positive energy transformation?",
+          "options": {
+            "A": "To increase the use of fossil fuels",
+            "B": "To reduce the impact of energy development on nature and communities",
+            "C": "To decrease the global energy demand",
+            "D": "To promote the use of nuclear energy"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because building a nature-positive energy transformation aims to minimize the negative impacts of energy development on nature and communities, while promoting a low-carbon economy."
+        },
+        {
+          "question": "What is the predicted outcome of an energy system powered by renewables compared to a fossil fuel-dominated energy system?",
+          "options": {
+            "A": "2-16 times worse for nature and people",
+            "B": "2-16 times better for nature and people",
+            "C": "Similar outcomes for nature and people",
+            "D": "Unknown outcomes for nature and people"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report states that an energy system powered by renewables will be 2-16 times better for nature and people than a fossil fuel-dominated energy system."
+        },
+        {
+          "question": "What is the name of the coalition established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system?",
+          "options": {
+            "A": "CLEANaction",
+            "B": "WWF",
+            "C": "BCG",
+            "D": "IPCC"
+          },
+          "correct_answer": "A",
+          "explanation": "The correct answer is A because CLEANaction is the coalition established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system."
+        },
+        {
+          "question": "What is the predicted consequence of not achieving the needed energy transformation?",
+          "options": {
+            "A": "A safer and more livable future",
+            "B": "A reduction in climate change",
+            "C": "The worsening climate crisis and damage to human wellbeing and the planet",
+            "D": "An increase in the use of fossil fuels"
+          },
+          "correct_answer": "C",
+          "explanation": "The correct answer is C because the report states that without the needed energy transformation, the worsening climate crisis—and the damage it will cause—threatens human wellbeing and the health of the planet."
+        },
+        {
+          "question": "What is the main challenge in transitioning to renewable energy and electrified transportation?",
+          "options": {
+            "A": "Technical limitations of renewable energy",
+            "B": "Misaligned policies and misdirected economic incentives, as well as local concerns related to impacts on people and ecosystems",
+            "C": "Lack of public awareness about climate change",
+            "D": "Insufficient funding for renewable energy projects"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report mentions that obstacles for transitioning to renewable energy and electrified transportation include misaligned policies and misdirected economic incentives, but also local concerns related to impacts on people and ecosystems."
+        }
+      ],
+      "total_questions": 5
+    },
+    {
+      "category": "renewable_energy",
+      "set_number": 3,
+      "questions": [
+        {
+          "question": "What is the main goal of the energy transformation discussed in the report?",
+          "options": {
+            "A": "To increase the use of fossil fuels",
+            "B": "To reduce the impact of climate change and protect nature",
+            "C": "To decrease energy efficiency",
+            "D": "To reduce the use of renewable energy sources"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report emphasizes the need for a rapid energy transformation to mitigate climate change and ensure a livable future, while also protecting nature and promoting a low-carbon economy."
+        },
+        {
+          "question": "What is the name of the coalition established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system?",
+          "options": {
+            "A": "CLEANaction",
+            "B": "WWF",
+            "C": "BCG",
+            "D": "IPCC"
+          },
+          "correct_answer": "A",
+          "explanation": "The correct answer is A because the report mentions that the Coalition Linking Energy And Nature for action (CLEANaction) was established in 2021 to promote a global and just transition to a low-impact and nature-sensitive renewable energy system."
+        },
+        {
+          "question": "What is the expected outcome of an energy transformation that is well-planned and executed?",
+          "options": {
+            "A": "Increased climate and nature risks",
+            "B": "Nature-positive outcomes and reduced climate and nature risks",
+            "C": "Decreased energy efficiency",
+            "D": "Increased reliance on fossil fuels"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report states that an energy transformation that is well-planned and executed can holistically address both climate and nature risks and produce nature-positive outcomes."
+        },
+        {
+          "question": "What is the name of the scenario that limits warming to 1.5°C with limited overshoot through the rapid scale up of renewable energy, electrification, and energy efficiency improvements?",
+          "options": {
+            "A": "Business-as-Usual (BAU) scenario",
+            "B": "Rapid Transition (RT) scenario",
+            "C": "Low-Carbon Economy scenario",
+            "D": "Nature-Positive Energy Transformation scenario"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report mentions that the Rapid Transition (RT) scenario limits warming to 1.5°C with limited overshoot through the rapid scale up of renewable energy, electrification, and energy efficiency improvements."
+        },
+        {
+          "question": "What is the expected benefit of an energy system powered by renewables compared to a fossil fuel-dominated energy system?",
+          "options": {
+            "A": "2-16 times worse for nature and people",
+            "B": "2-16 times better for nature and people",
+            "C": "No difference",
+            "D": "Depends on the location"
+          },
+          "correct_answer": "B",
+          "explanation": "The correct answer is B because the report states that an energy system powered by renewables will be 2-16 times better for nature and people than a fossil fuel-dominated energy system."
+        }
+      ],
+      "total_questions": 5
+    }
+  ]
+}

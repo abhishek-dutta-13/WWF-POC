@@ -1,0 +1,23 @@
+# Render.com Deployment Configuration
+# This file tells Render how to build and run your MCQ Generator API
+
+services:
+  - type: web
+    name: mcq-generator-api
+    runtime: python
+    plan: free  # Free tier 
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd src && uvicorn mcq_api_service:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # ⚠️ WARNING: Hardcoded API keys - DO NOT push to public GitHub!
+      # Consider using Render Dashboard environment variables instead
+      - key: GROQ_API_KEY
+        value: "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"
+      - key: API_KEY
+        value: ""  # Optional - set your own secret key for API authentication
+      - key: ALLOWED_ORIGINS
+        value: "*"  # Update with your Quickbase domain in Render dashboard
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+    healthCheckPath: /health
+    autoDeploy: true  # Auto-deploy on git push
