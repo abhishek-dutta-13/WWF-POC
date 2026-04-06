@@ -7,7 +7,7 @@ Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout),
 - [QUICKBASE.md](QUICKBASE.md) - Quickbase integration details
 
 **✨ Key Features:**
-- Generates **1 set of 30 questions** per category
+- Generates **1 set of 25 questions** per category
 - Uses **Meta Llama 4 Scout 17B 16E Instruct** model
 - Implements **rate limiting** (61-second delays) to prevent API errors
 - All questions have **set_number = 1**
@@ -66,10 +66,10 @@ Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout),
 
 ## 🎯 What This Does
 
-This API receives a category name and generates **1 set of 30 MCQs** with the following features:
+This API receives a category name and generates **1 set of 25 MCQs** with the following features:
 
 - **Model**: Meta Llama 4 Scout 17B 16E Instruct (from Groq)
-- **Questions**: 30 questions per request
+- **Questions**: 25 questions per request
 - **Set Number**: Always 1
 - **Rate Limiting**: 61-second delay after every 5 questions (prevents API rate limit errors)
 - **Options**: 4 options (A, B, C, D) per question
@@ -90,7 +90,7 @@ POST /generate-mcqs
   "mcq_sets": [
     {
       "set_number": 1,
-      "total_questions": 30,
+      "total_questions": 25,
       "category": "circular_economy_and_waste_reduction",
       "questions": [
         {
@@ -99,11 +99,11 @@ POST /generate-mcqs
           "correct_answer": "B",
           "explanation": "Crop rotation is important because..."
         }
-        // ... 29 more questions
+        // ... 24 more questions
       ]
     }
   ],
-  "message": "Successfully generated 1 MCQ set with 30 questions for circular_economy_and_waste_reduction"
+  "message": "Successfully generated 1 MCQ set with 25 questions for circular_economy_and_waste_reduction"
 }
 ### Open PowerShell in WWF folder:
 

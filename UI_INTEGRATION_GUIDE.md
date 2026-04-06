@@ -64,7 +64,7 @@ Content-Type: application/json
     {
       "category": "circular_economy_and_waste_reduction",
       "set_number": 1,
-      "total_questions": 30,
+      "total_questions": 25,
       "questions": [
         {
           "question": "What is the main principle of circular economy?",
@@ -77,11 +77,11 @@ Content-Type: application/json
           "correct_answer": "B",
           "explanation": "Circular economy focuses on keeping resources in use for as long as possible..."
         }
-        // ... 29 more questions
+        // ... 24 more questions
       ]
     }
   ],
-  "message": "Successfully generated 1 MCQ set with 30 questions for circular_economy_and_waste_reduction"
+  "message": "Successfully generated 1 MCQ set with 25 questions for circular_economy_and_waste_reduction"
 }
 ```
 
@@ -144,9 +144,9 @@ Content-Type: application/json
 
 ## 🔄 Response Time
 
-**Expected:** 3-5 minutes per request
+**Expected:** 4-5 minutes per request
 
-The API generates 30 questions in batches of 5, with a 61-second delay between batches to prevent rate limiting. Total time breakdown:
+The API generates 25 questions in batches of 5, with a 61-second delay between batches to prevent rate limiting. Total time breakdown:
 
 - Batch 1 (Q1-Q5): ~30 seconds
 - Delay: 61 seconds
@@ -157,10 +157,8 @@ The API generates 30 questions in batches of 5, with a 61-second delay between b
 - Batch 4 (Q16-Q20): ~30 seconds
 - Delay: 61 seconds
 - Batch 5 (Q21-Q25): ~30 seconds
-- Delay: 61 seconds
-- Batch 6 (Q26-Q30): ~30 seconds
 
-**Total:** ~6-7 minutes
+**Total:** ~5 minutes
 
 **UI Recommendation:** Show a progress indicator or loading message to users.
 
@@ -270,7 +268,7 @@ generateMCQs('circular_economy_and_waste_reduction')
 
 ### Question Card Layout
 ```
-Question 1 of 30                                    [Set #1]
+Question 1 of 25                                    [Set #1]
 ─────────────────────────────────────────────────────────
 
 What is the main principle of circular economy?
@@ -298,8 +296,8 @@ const response = await generateMCQs('circular_economy_and_waste_reduction');
 // Access data
 const category = response.category;                    // "circular_economy_and_waste_reduction"
 const setNumber = response.mcq_sets[0].set_number;     // 1
-const totalQuestions = response.mcq_sets[0].total_questions;  // 30
-const questions = response.mcq_sets[0].questions;      // Array of 30 questions
+const totalQuestions = response.mcq_sets[0].total_questions;  // 25
+const questions = response.mcq_sets[0].questions;      // Array of 25 questions
 
 // Each question has:
 questions.forEach((q, index) => {
