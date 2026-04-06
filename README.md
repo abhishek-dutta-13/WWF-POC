@@ -1,10 +1,25 @@
 # 🚀 MCQ Generator API - Complete Guide
 
-Generate Multiple Choice Questions from PDFs using Groq AI, deployed for free on Render.com.
+Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout), deployed for free on Render.com.
 
 **📖 Documentation:**
 - This file (README.md) - Complete deployment & usage guide
 - [QUICKBASE.md](QUICKBASE.md) - Quickbase integration details
+
+**✨ Key Features:**
+- Generates **1 set of 30 questions** per category
+- Uses **Meta Llama 4 Scout 17B 16E Instruct** model
+- Implements **rate limiting** (61-second delays) to prevent API errors
+- All questions have **set_number = 1**
+- Each question includes 4 options, correct answer, and explanation
+- **Dynamic category management** via CSV file (no code changes needed to add categories)
+
+**📂 Current Categories:**
+- Circular Economy and Waste Reduction
+- Sustainability Strategy and Compliance
+- Sustainable Agriculture and Natural Resources
+
+*Categories are managed via `data/category_file/categories.csv` - add new categories without changing code!*
 
 ---
 
@@ -51,26 +66,45 @@ Generate Multiple Choice Questions from PDFs using Groq AI, deployed for free on
 
 ## 🎯 What This Does
 
-This API receives a category name and generates **3 sets of MCQs**, each with **5 questions**:
+This API receives a category name and generates **1 set of 30 MCQs** with the following features:
+
+- **Model**: Meta Llama 4 Scout 17B 16E Instruct (from Groq)
+- **Questions**: 30 questions per request
+- **Set Number**: Always 1
+- **Rate Limiting**: 61-second delay after every 5 questions (prevents API rate limit errors)
+- **Options**: 4 options (A, B, C, D) per question
+- **Includes**: Correct answer and explanation for each question
 
 **Input** (from Quickbase or any client):
 ```json
 POST /generate-mcqs
-{"category": "agriculture"}
+{"category": "circular_economy_and_waste_reduction"}
 ```
 
 **Output** (JSON):
 ```json
 {
   "status": "success",
-  "category": "agriculture",
+  "category": "circular_economy_and_waste_reduction",
+  "total_sets": 1,
   "mcq_sets": [
     {
       "set_number": 1,
+      "total_questions": 30,
+      "category": "circular_economy_and_waste_reduction",
       "questions": [
         {
           "question": "What is crop rotation?",
-          "options": {"A": "...", "B": "...", "C": "...", "D": "..."},
+          "options": {"A": "Option 1", "B": "Option 2", "C": "Option 3", "D": "Option 4"},
+          "correct_answer": "B",
+          "explanation": "Crop rotation is important because..."
+        }
+        // ... 29 more questions
+      ]
+    }
+  ],
+  "message": "Successfully generated 1 MCQ set with 30 questions for circular_economy_and_waste_reduction"
+}
 ### Open PowerShell in WWF folder:
 
 ```powershell
