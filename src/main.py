@@ -223,6 +223,9 @@ chatbot_ui_path = Path(__file__).parent.parent / "chatbot-ui"
 if chatbot_ui_path.exists():
     logger.info(f"Serving chatbot UI from: {chatbot_ui_path}")
     
+    # Mount static files (for images, CSS, etc.)
+    app.mount("/static", StaticFiles(directory=str(chatbot_ui_path)), name="static")
+    
     @app.get("/chat")
     async def serve_chat_ui():
         """
