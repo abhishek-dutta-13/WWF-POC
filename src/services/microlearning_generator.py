@@ -54,7 +54,7 @@ class MicrolearningGenerator:
         groq_api_key: str,
         openai_api_key: str,
         embedding_model: str = "text-embedding-3-small",
-        llm_model: str = "llama-3.3-70b-versatile",
+        llm_model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
         collection_name: str = "wwf_knowledge_base"
     ):
         """
@@ -65,12 +65,18 @@ class MicrolearningGenerator:
             groq_api_key: Groq API key
             openai_api_key: OpenAI API key for embeddings
             embedding_model: OpenAI embedding model name
-            llm_model: Groq LLM model name
+            llm_model: Groq LLM model name (with fallback chain)
             collection_name: ChromaDB collection name
         """
         self.vector_store_path = vector_store_path
         self.embedding_model_name = embedding_model
-        self.llm_model = llm_model
+        # Model fallback chain (in order of preference)
+        self.models = [
+            "meta-llama/llama-4-scout-17b-16e-instruct",  # Primary
+            "meta-llama/llama-prompt-guard-2-22m",          # Fallback 1
+            "llama-3.3-70b-versatile"                        # Fallback 2 (original)
+        ]
+        self.llm_model = self.models[0]
         self.collection_name = collection_name
         
         # Load category to course_id mapping
@@ -225,28 +231,48 @@ class MicrolearningGenerator:
             combined_content
         )
         
-        try:
-            # Call Groq LLM
-            logger.info("Calling Groq LLM to generate modules")
-            response = self.groq_client.chat.completions.create(
-                model=self.llm_model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert instructional designer specializing in sustainability education. Create comprehensive, detailed micro-learning content that is educational, engaging, and practical."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.7,
-                max_tokens=8000,
-                response_format={"type": "json_object"}
-            )
+        # Try each model in fallback chain
+        for attempt, model in enumerate(self.models, 1):
+            try:
+                # Call Groq LLM
+                logger.info(f"Attempt {attempt}/{len(self.models)}: Calling Groq LLM with model {model}")
+                response = self.groq_client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are an expert instructional designer specializing in sustainability education. Create comprehensive, detailed micro-learning content that is educational, engaging, and practical."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=0.7,
+                    max_tokens=8000,
+                    response_format={"type": "json_object"}
+                )
+                
+                # Parse result
+                result = json.loads(response.choices[0].message.content)
+                logger.info(f"✅ Success with model: {model}")
+                self.llm_model = model  # Update current model on success
+                break  # Exit loop on success
             
-            # Parse result
-            result = json.loads(response.choices[0].message.content)
+            except Exception as model_error:
+                logger.warning(f"❌ Failed with model {model}: {str(model_error)}")
+                
+                # If this is the last model, raise the error
+                if attempt == len(self.models):
+                    logger.error(f"All models failed. Last error: {str(model_error)}")
+                    raise
+                
+                # Otherwise, continue to next model
+                logger.info("Trying next model in fallback chain...")
+                continue
+        
+        try:
+            pass  # Result already parsed in try block above
             
             # Validate and log statistics
             chapter_count = len(result.get('chapters', []))

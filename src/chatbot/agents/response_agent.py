@@ -39,7 +39,7 @@ Remember:
     
     def __init__(
         self,
-        model: str = "llama-3.3-70b-versatile",
+        model: str = "meta-llama/llama-4-scout-17b-16e-instruct",
         temperature: float = 0.3,
         max_tokens: int = 1500
     ):
@@ -47,11 +47,18 @@ Remember:
         Initialize Response Agent
         
         Args:
-            model: Groq model name
+            model: Groq model name (with fallback models)
             temperature: LLM temperature (lower = more factual)
             max_tokens: Maximum response length
         """
-        self.model = model
+        # Model fallback chain (in order of preference)
+        self.models = [
+            "meta-llama/llama-4-scout-17b-16e-instruct",  # Primary
+            "meta-llama/llama-prompt-guard-2-22m",          # Fallback 1
+            "llama-3.3-70b-versatile"                        # Fallback 2 (original)
+        ]
+        self.current_model_index = 0
+        self.model = self.models[0]
         self.temperature = temperature
         self.max_tokens = max_tokens
         
@@ -62,7 +69,7 @@ Remember:
         
         # Initialize Groq client
         self.groq_client = Groq(api_key=groq_api_key)
-        logger.info(f"[Response Agent] Initialized with model: {model}")
+        logger.info(f"[Response Agent] Initialized with model chain: {' -> '.join(self.models)}")
     
     def generate_response(
         self,
@@ -94,30 +101,47 @@ Remember:
         logger.info(f"[Response Agent] Generating response for: {query[:50]}...")
         logger.debug(f"[Response Agent] User: {user_context.name} from {user_context.location}")
         
-        try:
-            # Call Groq LLM
-            response = self.groq_client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=self.temperature,
-                max_tokens=self.max_tokens
-            )
+        # Try each model in fallback chain
+        for attempt, model in enumerate(self.models, 1):
+            try:
+                logger.info(f"[Response Agent] Attempt {attempt}/{len(self.models)} with model: {model}")
+                
+                # Call Groq LLM
+                response = self.groq_client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": self.SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens
+                )
+                
+                generated_text = response.choices[0].message.content
+                
+                logger.info(f"[Response Agent] ✅ Success with {model} ({len(generated_text)} chars)")
+                
+                # Update current model on success
+                self.model = model
+                self.current_model_index = attempt - 1
+                
+                return generated_text
             
-            generated_text = response.choices[0].message.content
-            
-            logger.info(f"[Response Agent] Response generated ({len(generated_text)} chars)")
-            
-            return generated_text
-        
-        except Exception as e:
-            logger.error(f"[Response Agent] Error generating response: {e}")
-            return (
-                "I apologize, but I encountered an error generating a response. "
-                "Please try rephrasing your question or contact support if the issue persists."
-            )
+            except Exception as e:
+                error_msg = str(e)
+                logger.warning(f"[Response Agent] ❌ Failed with {model}: {error_msg}")
+                
+                # If this is the last model, return error message
+                if attempt == len(self.models):
+                    logger.error(f"[Response Agent] All models failed. Last error: {error_msg}")
+                    return (
+                        "I apologize, but I encountered an error generating a response. "
+                        "Please try again in a moment or contact support if the issue persists."
+                    )
+                
+                # Otherwise, continue to next model
+                logger.info(f"[Response Agent] Trying next model in fallback chain...")
+                continue
     
     def _build_prompt(
         self,
