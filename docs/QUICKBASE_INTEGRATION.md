@@ -1,141 +1,209 @@
 # Quickbase Integration Guide
 
-This document explains how to use the Quickbase integration features of the MCQ Generator API.
+This document explains the Quickbase integration for WWF Learning Content Generator API.
 
 ## Overview
 
-The MCQ API now supports direct integration with Quickbase, allowing you to:
-1. Generate MCQ questions
-2. Format them for Quickbase
-3. Push them directly to your Quickbase table
+The API automatically pushes generated content directly to Quickbase tables:
+- **MCQs** → Table `bvxbt7fyw` 
+- **Microlearning** → Table `bvxji8seh`
 
-## Endpoints
-
-### 1. `/generate-mcqs-quickbase` (Format Only)
-Generates MCQs and returns them in Quickbase format, but does NOT push to Quickbase.
-
-**Use Case**: When you want to review the data before pushing, or handle the push yourself.
-
-**Request**:
-```json
-POST /generate-mcqs-quickbase
-{
-  "CourseID": "001"
-}
-```
-
-**Response**: Quickbase-formatted payload (ready to push)
-
----
-
-### 2. `/generate-and-push-mcqs-quickbase` (Generate + Push)
-Generates MCQs **AND** automatically pushes them to Quickbase.
-
-**Use Case**: One-click generation and deployment to Quickbase.
-
-**Request**:
-```json
-POST /generate-and-push-mcqs-quickbase
-{
-  "CourseID": "001"
-}
-```
-
-**Response**:
-```json
-{
-  "status": "success",
-  "message": "Generated and pushed 30 MCQ records",
-  "course_id": "001",
-  "category": "Circular Economy & Waste Reduction",
-  "records_pushed": 30,
-  "quickbase_response": { ... }
-}
-```
-
----
-
-## Quickbase Field Mappings
-
-| Field ID | Field Name | Description | Example |
-|----------|------------|-------------|---------|
-| **19** | course_id | Course identifier | "001" |
-| **8** | set_number | Set number (always 1) | 1 |
-| **10** | question_no | Question number | "1", "2", ... "30" |
-| **18** | question | Question text | "What is circular economy?" |
-| **11** | option_a | Option A | "Recycling materials" |
-| **12** | option_b | Option B | "Linear production" |
-| **13** | option_c | Option C | "Waste disposal" |
-| **14** | option_d | Option D | "Incineration" |
-| **15** | correct_answer | Correct option letter | "A" |
-| **16** | explanation | Why this answer is correct | "Option A is correct because..." |
+No manual Quickbase API calls needed - it's all automated!
 
 ---
 
 ## Configuration
 
-### Environment Variables
-
-Add these to your `.env` file (or set in your deployment environment):
+### Required Environment Variables
 
 ```env
-# Quickbase API Configuration
-QUICKBASE_API_ENDPOINT="https://api.quickbase.com/v1/records"
-QUICKBASE_REALM_HOSTNAME="yourcompany.quickbase.com"
-QUICKBASE_USER_TOKEN="your_user_token_here"
-QUICKBASE_TABLE_ID="your_table_id_here"
+QUICKBASE_API_ENDPOINT=https://api.quickbase.com/v1/records
+QUICKBASE_REALM_HOSTNAME=accentureglobaldeliverytraining.quickbase.com
+QUICKBASE_USER_TOKEN=your_quickbase_user_token
+QUICKBASE_TABLE_ID=bvxbt7fyw  # MCQ table
+QUICKBASE_MICROLEARNING_TABLE_ID=bvxji8seh  # Microlearning table
 ```
-QUICKBASE_TABLE_ID="bvxbt7fyw"
-```
-
-### Getting Your Quickbase User Token
-
-1. Log into Quickbase
-2. Click your profile icon → **My Preferences**
-3. Navigate to **Manage User Tokens**
-4. Click **New User Token**
-5. Copy the token and add to your `.env` file
 
 ---
 
-## Testing with Postman
+## API Endpoints
 
-### Headers
-```
-QB-Realm-Hostname: yourcompany.quickbase.com
-Authorization: QB-USER-TOKEN your_quickbase_user_token_here
-Content-Type: application/json
-```
+### 1. Generate MCQs + Push to Quickbase
 
-### Request Body
+**Endpoint:** `POST /generate-mcqs-quickbase`
+
+**Request:**
 ```json
 {
-  "CourseID": "003"
+  "CourseID": "001"
 }
 ```
 
-Replace `"003"` with any valid course ID:
-- `"001"` - Circular Economy & Waste Reduction
-- `"002"` - Sustainability Strategy & Compliance
-- `"003"` - Sustainable Agriculture & Natural Resources
+**What Happens:**
+1. Generates 30 MCQ questions
+2. Transforms to Quickbase format
+3. Pushes to table `bvxbt7fyw`
+4. Returns both content and push status
+
+**Response:**
+```json
+{
+  "mcqs": { ... },
+  "quickbase_push": {
+    "success": true,
+    "records_pushed": 30,
+    "table_id": "bvxbt7fyw"
+  }
+}
+```
 
 ---
 
-## API Security
+### 2. Generate Microlearning + Push to Quickbase
 
-### Optional API Key Authentication
+**Endpoint:** `POST /generate-microlearning-quickbase`
 
-For added security, set an API key in `.env`:
-
-```env
-API_KEY="your-secret-key-here"
+**Request:**
+```json
+{
+  "CourseID": "002"
+}
 ```
 
-Then include it in your requests:
+**What Happens:**
+1. Generates microlearning modules (4-6 chapters)
+2. Transforms to Quickbase format
+3. Pushes to table `bvxji8seh`
+4. Returns both content and push status
 
+**Response:**
+```json
+{
+  "microlearning_modules": { ... },
+  "quickbase_push": {
+    "success": true,
+    "records_pushed": 20,
+    "table_id": "bvxji8seh"
+  }
+}
 ```
-X-API-Key: your-secret-key-here
+
+## Quickbase Field Mappings
+
+### MCQ Table (bvxbt7fyw)
+
+Each MCQ question creates **one record** with these fields:
+
+| Field ID | Field Name | Type | Example |
+|----------|------------|------|---------|
+| 19 | Course ID | Text | "001" |
+| 8 | Set Number | Number | 1 |
+| 10 | Question No | Number | 1 |
+| 18 | Question | Text | "What is circular economy?" |
+| 11 | Option A | Text | "Recycling materials" |
+| 12 | Option B | Text | "Eliminate waste" |
+| 13 | Option C | Text | "Reduce employment" |
+| 14 | Option D | Text | "Single-use products" |
+| 15 | Correct Answer | Text | "B" |
+| 16 | Explanation | Rich Text | "The circular economy aims to..." |
+
+**Records per Course:** 30 MCQs
+
+---
+
+### Microlearning Table (bvxji8seh)
+
+Each micro-content creates **one record** with these fields:
+
+| Field ID | Field Name | Type | Example |
+|----------|------------|------|---------|
+| 12 | Course ID | Text | "001" |
+| 20 | Micro Content ID | Text | "MC-001" |
+| 8 | Language | Text | "English" |
+| 6 | Chapter | Text | "Introduction to Circular Economy" |
+| 7 | Content | Rich Text | "The circular economy represents..." (250-400 words) |
+
+**Records per Course:** 15-25 (varies based on chapters/content)
+
+---
+
+## Verifying Quickbase Push
+
+### Check Response
+```json
+{
+  "quickbase_push": {
+    "success": true,
+    "records_pushed": 30,
+    "table_id": "bvxbt7fyw"
+  }
+}
 ```
+
+- `success: true` - Push succeeded
+- `success: false` - Push failed (check error message)
+- `records_pushed` - Number of records added to Quickbase
+
+### Common Issues
+
+**401 Unauthorized:**
+- Invalid `QUICKBASE_USER_TOKEN`
+- Token expired
+- Solution: Generate new token in Quickbase
+
+**403 Forbidden:**
+- User doesn't have write permissions to table
+- Solution: Grant write access in Quickbase
+
+**400 Bad Request:**
+- Invalid field mapping
+- Missing required fields
+- Solution: Check field IDs match your Quickbase table
+
+---
+
+## Getting Quickbase Credentials
+
+### 1. User Token
+
+1. Log into Quickbase
+2. Click profile icon → **My Preferences**
+3. Navigate to **Manage User Tokens**
+4. Click **New User Token**
+5. Name it (e.g., "WWF API Integration")
+6. Copy the token → Add to `.env` as `QUICKBASE_USER_TOKEN`
+
+### 2. Table IDs
+
+**MCQ Table:**
+- Open your MCQ table in Quickbase
+- Look at URL: `quickbase.com/db/bvxbt7fyw`
+- Table ID = `bvxbt7fyw`
+
+**Microlearning Table:**
+- Open your microlearning table in Quickbase  
+- Look at URL: `quickbase.com/db/bvxji8seh`
+- Table ID = `bvxji8seh`
+
+### 3. Realm Hostname
+
+- Your Quickbase URL: `https://accentureglobaldeliverytraining.quickbase.com`
+- Realm Hostname = `accentureglobaldeliverytraining.quickbase.com`
+
+---
+
+## Security Notes
+
+- **Never commit** `.env` file with tokens to Git
+- **Rotate tokens** regularly
+- **Use environment variables** in production (Render dashboard)
+- **Limit token permissions** to specific tables only
+- **Monitor usage** in Quickbase audit logs
+
+---
+
+**Last Updated:** April 7, 2026  
+**API Version:** 2.0.0
 
 ---
 
