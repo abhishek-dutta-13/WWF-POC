@@ -86,6 +86,41 @@ This folder contains all documentation for the WWF Learning Content Generator AP
 
 ---
 
+### 6. [CHATBOT_IMPLEMENTATION_APPROACH.md](CHATBOT_IMPLEMENTATION_APPROACH.md)
+**For Developers:** Complete chatbot architecture and design
+
+**Use this when:**
+- Understanding chatbot implementation
+- Learning about agentic workflow
+- Planning UI development
+
+**Contains:**
+- Agentic RAG architecture
+- Agent routing logic (RAG, Web Search, Hybrid)
+- Database schema for chat history
+- API endpoint specifications
+- Frontend UI structure (TypeScript/React)
+- PDF export implementation
+
+---
+
+### 7. [CHATBOT_TESTING_GUIDE.md](CHATBOT_TESTING_GUIDE.md)
+**For Testers:** Chatbot API testing with Postman
+
+**Use this when:**
+- Testing chatbot endpoints before UI is ready
+- Validating agent routing
+- Testing PDF export functionality
+
+**Contains:**
+- Complete Postman test scenarios
+- Example requests/responses for all endpoints
+- Agent routing test cases (RAG vs Web vs Hybrid)
+- PDF export testing
+- Troubleshooting guide
+
+---
+
 ## 🎯 Quick Navigation
 
 **I want to...**
@@ -97,6 +132,8 @@ This folder contains all documentation for the WWF Learning Content Generator AP
 | Test with Postman | [Postman_Testing_Guide.md](Postman_Testing_Guide.md) |
 | Understand Quickbase integration | [QUICKBASE_INTEGRATION.md](QUICKBASE_INTEGRATION.md) |
 | Learn about microlearning/RAG | [MICROLEARNING_README.md](MICROLEARNING_README.md) |
+| **Understand chatbot architecture** | [CHATBOT_IMPLEMENTATION_APPROACH.md](CHATBOT_IMPLEMENTATION_APPROACH.md) |
+| **Test chatbot with Postman** | [CHATBOT_TESTING_GUIDE.md](CHATBOT_TESTING_GUIDE.md) |
 
 ---
 

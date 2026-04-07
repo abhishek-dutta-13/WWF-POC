@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WWF Chatbot - Test Launcher</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wwf-orange': '#FF6200',
+                        'wwf-green': '#2C5F2D',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 via-white to-blue-50 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-block bg-wwf-orange rounded-full p-4 mb-4">
+                    <span class="text-6xl">🐼</span>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">WWF Chatbot Launcher</h1>
+                <p class="text-gray-600">Test the chatbot by entering user details below</p>
+                <p class="text-sm text-gray-500 mt-2">This simulates the Quickbase button functionality</p>
+            </div>
+
+            <!-- Info Card -->
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <h3 class="font-semibold text-blue-800 mb-1">How this works:</h3>
+                        <p class="text-sm text-blue-700">Fill in the form below and click "Launch Chatbot". The chatbot will open in a new tab with your user context, just like when a user clicks the Quickbase button.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+                <form id="launcherForm" class="space-y-6">
+                    <!-- User ID -->
+                    <div>
+                        <label for="user_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                            User ID <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="user_id" 
+                            name="user_id"
+                            value="demo_user_001"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wwf-orange focus:border-transparent transition"
+                            placeholder="e.g., user_12345"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Unique identifier for the user</p>
+                    </div>
+
+                    <!-- Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name"
+                            value="John Doe"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wwf-orange focus:border-transparent transition"
+                            placeholder="e.g., John Doe"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">User's full name (displayed in chat header)</p>
+                    </div>
+
+                    <!-- Education -->
+                    <div>
+                        <label for="education" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Education / Background <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="education" 
+                            name="education"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wwf-orange focus:border-transparent transition"
+                        >
+                            <option value="Environmental Science">Environmental Science</option>
+                            <option value="Business Administration">Business Administration</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Public Policy">Public Policy</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Economics">Economics</option>
+                            <option value="Communications">Communications</option>
+                            <option value="High School Student">High School Student</option>
+                            <option value="Graduate Student">Graduate Student</option>
+                            <option value="Sustainability Professional">Sustainability Professional</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Helps personalize responses</p>
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Location <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="location" 
+                            name="location"
+                            value="California, USA"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wwf-orange focus:border-transparent transition"
+                            placeholder="e.g., California, USA"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">City, State/Country (for region-specific advice)</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit"
+                        class="w-full bg-wwf-orange text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-orange-600 transition transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                    >
+                        <span>🚀 Launch Chatbot</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Example Scenarios -->
+            <div class="mt-8 bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-wwf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Quick Test Scenarios
+                </h3>
+                
+                <div class="space-y-3">
+                    <button onclick="loadScenario('test_001', 'Alice Johnson', 'Environmental Science', 'New York, USA')" 
+                            class="w-full text-left px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition text-sm">
+                        <span class="font-medium text-gray-800">Scenario 1:</span> 
+                        <span class="text-gray-600">Environmental Scientist from New York</span>
+                    </button>
+                    
+                    <button onclick="loadScenario('test_002', 'Carlos Rodriguez', 'Business Administration', 'London, UK')" 
+                            class="w-full text-left px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition text-sm">
+                        <span class="font-medium text-gray-800">Scenario 2:</span> 
+                        <span class="text-gray-600">Business Manager from London</span>
+                    </button>
+                    
+                    <button onclick="loadScenario('test_003', 'Priya Sharma', 'High School Student', 'Mumbai, India')" 
+                            class="w-full text-left px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition text-sm">
+                        <span class="font-medium text-gray-800">Scenario 3:</span> 
+                        <span class="text-gray-600">High School Student from Mumbai</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Technical Info -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">📋 For Developers:</h4>
+                <p class="text-xs text-gray-600 mb-2">The generated URL will look like:</p>
+                <code class="block text-xs bg-gray-800 text-green-400 p-2 rounded overflow-x-auto">
+                    /chat?user_id=demo_user_001&name=John%20Doe&education=Environmental%20Science&location=California,%20USA
+                </code>
+                <p class="text-xs text-gray-500 mt-2">This is exactly how Quickbase will construct the URL when users click the button.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle form submission
+        document.getElementById('launcherForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const userId = document.getElementById('user_id').value;
+            const name = document.getElementById('name').value;
+            const education = document.getElementById('education').value;
+            const location = document.getElementById('location').value;
+            
+            // Construct URL with parameters
+            const params = new URLSearchParams({
+                user_id: userId,
+                name: name,
+                education: education,
+                location: location
+            });
+            
+            // Determine base URL (same domain)
+            const baseUrl = window.location.origin;
+            const chatUrl = `${baseUrl}/chat?${params.toString()}`;
+            
+            // Open chatbot in new tab
+            window.open(chatUrl, '_blank');
+        });
+
+        // Load quick scenario
+        function loadScenario(userId, name, education, location) {
+            document.getElementById('user_id').value = userId;
+            document.getElementById('name').value = name;
+            document.getElementById('education').value = education;
+            document.getElementById('location').value = location;
+        }
+    </script>
+</body>
+</html>

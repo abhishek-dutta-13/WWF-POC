@@ -9,13 +9,20 @@ Architecture: Router-based modular design for better organization.
 
 import os
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
 
 # Import routers
-from routers import mcq_router, microlearning_router
+from routers import mcq_router, microlearning_router, chatbot_router
 from dependencies import GROQ_API_KEY, ALLOWED_ORIGINS, COURSE_ID_TO_CATEGORY, ALLOWED_CATEGORIES
+
+# Import chatbot database
+from chatbot.database import init_db, get_db, get_database_info
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +41,26 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS Configuration
+
+# ==================== Startup Event ====================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on application startup"""
+    logger.info("🚀 Starting WWF Learning Content Generator API...")
+    
+    # Initialize database (create tables if they don't exist)
+    try:
+        init_db()
+        db_info = get_database_info()
+        logger.info(f"📊 Database initialized: {db_info['database_type']}")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize database: {e}")
+    
+    logger.info("✅ Application startup complete")
+
+
+# ==================== CORS Configuration ====================
 
 logger.info("Configuring CORS middleware")
 if ALLOWED_ORIGINS == ["*"]:
@@ -53,6 +79,7 @@ app.add_middleware(
 
 app.include_router(mcq_router.router)
 app.include_router(microlearning_router.router)
+app.include_router(chatbot_router.router)
 
 # Root endpoint
 @app.get("/")
@@ -87,7 +114,14 @@ def root():
             "/generate-mcqs": "POST - Generate MCQs for a CourseID (standard format)",
             "/generate-mcqs-quickbase": "POST - Generate MCQs and push to Quickbase",
             "/generate-microlearning-quickbase": "POST - Generate micro-learning modules and push to Quickbase (RAG-based)",
-            "/generate-microlearning-modules": "POST - Generate micro-learning modules only (no Quickbase push)"
+            "/generate-microlearning-modules": "POST - Generate micro-learning modules only (no Quickbase push)",
+            "/launcher": "GET - Test launcher page (simulates Quickbase button)",
+            "/chat": "GET - Chatbot UI (open in browser)",
+            "/chatbot/session/init": "POST - Initialize chat session",
+            "/chatbot/message": "POST - Send message to chatbot",
+            "/chatbot/session/{id}/history": "GET - Get chat history",
+            "/chatbot/user/{id}/sessions": "GET - Get user's sessions",
+            "/chatbot/download/{filename}": "GET - Download PDF export"
         },
         "request_format": {
             "CourseID": "Use course ID (e.g., '001', '002', '003') instead of category name"
@@ -134,14 +168,90 @@ def health_check():
     Returns:
         Service health status and configuration status.
     """
+    db_info = get_database_info()
+    
     return {
         "status": "healthy",
         "service": "WWF Learning Content Generator API",
         "version": "2.0.0",
         "groq_api_configured": bool(GROQ_API_KEY),
         "categories_loaded": len(ALLOWED_CATEGORIES),
-        "course_mappings_loaded": len(COURSE_ID_TO_CATEGORY)
+        "course_mappings_loaded": len(COURSE_ID_TO_CATEGORY),
+        "database": {
+            "type": db_info["database_type"],
+            "status": "connected"
+        }
     }
+
+
+@app.get("/db-test")
+def test_database(db: Session = Depends(get_db)):
+    """
+    Test database connection.
+    
+    Returns:
+        Database connection status and test query result.
+    """
+    try:
+        # Try a simple query to verify connection
+        if "postgresql" in str(db.bind.url):
+            result = db.execute("SELECT 1 as test").scalar()
+            db_type = "PostgreSQL"
+        else:
+            result = db.execute("SELECT 1 as test").scalar()
+            db_type = "SQLite"
+        
+        return {
+            "status": "connected",
+            "database_type": db_type,
+            "test_query_result": result,
+            "message": "Database connection successful"
+        }
+    except Exception as e:
+        logger.error(f"Database test failed: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Database connection failed"
+        }
+
+
+# ==================== Chatbot UI Serving ====================
+
+# Mount static files for chatbot UI (optional - can be deployed separately)
+chatbot_ui_path = Path(__file__).parent.parent / "chatbot-ui"
+if chatbot_ui_path.exists():
+    logger.info(f"Serving chatbot UI from: {chatbot_ui_path}")
+    
+    @app.get("/chat")
+    async def serve_chat_ui():
+        """
+        Serve the chatbot UI
+        
+        Access at: http://localhost:8000/chat
+        Or with user context: http://localhost:8000/chat?user_id=123&name=John&location=CA&education=Science
+        """
+        chat_file = chatbot_ui_path / "index.html"
+        if chat_file.exists():
+            return FileResponse(chat_file)
+        return {"error": "Chat UI not found"}
+    
+    @app.get("/launcher")
+    async def serve_launcher():
+        """
+        Serve the test launcher page (simulates Quickbase button)
+        
+        Access at: http://localhost:8000/launcher
+        
+        This page allows you to test the chatbot by entering user details
+        and launching the chat with those parameters (simulates Quickbase integration)
+        """
+        launcher_file = chatbot_ui_path / "launcher.html"
+        if launcher_file.exists():
+            return FileResponse(launcher_file)
+        return {"error": "Launcher page not found"}
+else:
+    logger.warning("Chatbot UI directory not found. Chat UI will not be available at /chat")
 
 
 # Main entry point for testing
