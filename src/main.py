@@ -253,6 +253,14 @@ if chatbot_ui_path.exists():
         if launcher_file.exists():
             return FileResponse(launcher_file)
         return {"error": "Launcher page not found"}
+    
+    @app.get("/wwf-logo-new.jpg")
+    async def serve_logo():
+        """Serve the WWF logo"""
+        logo_file = chatbot_ui_path / "wwf-logo-new.jpg"
+        if logo_file.exists():
+            return FileResponse(logo_file, media_type="image/jpeg")
+        return {"error": "Logo not found"}
 else:
     logger.warning("Chatbot UI directory not found. Chat UI will not be available at /chat")
 

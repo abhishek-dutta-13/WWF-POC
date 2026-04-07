@@ -21,6 +21,7 @@ langchain-community>=0.0.20
 langchain-text-splitters>=0.0.1
 langgraph>=0.0.20  # For agentic workflows
 tavily-python>=0.3.0  # For web search agent
+duckduckgo-search>=4.0.0  # Fallback web search if Tavily fails
 
 # Utilities
 python-dotenv>=1.0.0
