@@ -90,9 +90,9 @@ async def generate_mcqs_quickbase(
     authenticated: bool = Depends(verify_api_key)
 ) -> Dict[str, Any]:
     """
-    Generate MCQ questions in Quickbase field ID format.
+    Generate MCQ questions and push them to Quickbase.
     
-    Transforms output to Quickbase format with field IDs.
+    Automatically generates MCQs, transforms to Quickbase format, and pushes to Quickbase.
     
     **Field mappings**:
     - 19: course_id
@@ -102,59 +102,6 @@ async def generate_mcqs_quickbase(
     - 11-14: options A-D
     - 15: correct_answer
     - 16: explanation
-    """
-    try:
-        course_id = request.CourseID
-        logger.info(f"Quickbase format requested for CourseID: {course_id}")
-        
-        category = COURSE_ID_TO_CATEGORY.get(course_id)
-        if not category:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid CourseID. Must be one of: {list(COURSE_ID_TO_CATEGORY.keys())}"
-            )
-        
-        logger.info(f"CourseID '{course_id}' mapped to category: {category}")
-        
-        mcq_set = process_category_mcqs(category)
-        
-        if not mcq_set:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to generate MCQs for CourseID {course_id}"
-            )
-        
-        standard_response = {
-            "status": "success",
-            "category": category,
-            "mcq_sets": [mcq_set.dict()],  # Convert to dict and wrap in list
-            "total_sets": 1
-        }
-        
-        quickbase_data = transform_to_quickbase_format(standard_response, course_id)
-        
-        logger.info(f"Transformed to {len(quickbase_data['data'])} Quickbase records for CourseID {course_id}")
-        return quickbase_data
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in generate_mcqs_quickbase: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/generate-and-push-mcqs-quickbase")
-async def generate_and_push_mcqs_quickbase(
-    request: MCQRequest = Body(...),
-    authenticated: bool = Depends(verify_api_key)
-) -> Dict[str, Any]:
-    """
-    Generate MCQ questions AND push them directly to Quickbase.
-    
-    Combines generation and pushing in one operation:
-    1. Generates 1 set of 30 MCQ questions
-    2. Transforms to Quickbase format
-    3. Pushes records to Quickbase via API
     
     **Environment Variables Required**:
     - QUICKBASE_TABLE_ID
@@ -190,8 +137,9 @@ async def generate_and_push_mcqs_quickbase(
         }
         
         quickbase_data = transform_to_quickbase_format(standard_response, course_id)
-        logger.info(f"Transformed {len(quickbase_data['data'])} records for CourseID {course_id}")
+        logger.info(f"Transformed {len(quickbase_data['data'])} Quickbase records for CourseID {course_id}")
         
+        # Push to Quickbase
         table_id = os.getenv("QUICKBASE_TABLE_ID", "bvxbt7fyw")
         
         push_result = push_mcqs_to_quickbase(
@@ -203,10 +151,11 @@ async def generate_and_push_mcqs_quickbase(
             logger.info(f"Successfully pushed {push_result['records_pushed']} records to Quickbase")
             return {
                 "status": "success",
-                "message": f"Generated and pushed {push_result['records_pushed']} MCQ records",
+                "message": f"Generated and pushed {push_result['records_pushed']} MCQ records to Quickbase",
                 "course_id": course_id,
                 "category": category,
                 "records_pushed": push_result["records_pushed"],
+                "quickbase_data": quickbase_data,
                 "quickbase_response": push_result.get("response", {})
             }
         else:
@@ -219,7 +168,7 @@ async def generate_and_push_mcqs_quickbase(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in generate_and_push_mcqs_quickbase: {str(e)}")
+        logger.error(f"Error in generate_mcqs_quickbase: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
