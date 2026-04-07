@@ -2,7 +2,7 @@
 """
 Pydantic models for chatbot API
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Literal
 from datetime import datetime
 
@@ -14,10 +14,11 @@ class UserContext(BaseModel):
     education: str = Field(..., description="User's educational background")
     location: str = Field(..., description="User's location (city, state/country)")
     
-    @validator('user_id', 'name', 'education', 'location')
-    def validate_not_empty(cls, v, field):
+    @field_validator('user_id', 'name', 'education', 'location')
+    @classmethod
+    def validate_not_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError(f'{field.name} cannot be empty')
+            raise ValueError('Field cannot be empty')
         return v.strip()
 
 
@@ -51,7 +52,8 @@ class SendMessageRequest(BaseModel):
     user_id: str
     message: str
     
-    @validator('message')
+    @field_validator('message')
+    @classmethod
     def validate_message(cls, v):
         if not v or not v.strip():
             raise ValueError('Message cannot be empty')
