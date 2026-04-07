@@ -311,6 +311,17 @@ async def get_chat_history(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         
+        # Get user details
+        user = db.query(User).filter(User.user_id == session.user_id).first()
+        user_context = None
+        if user:
+            user_context = UserContext(
+                user_id=user.user_id,
+                name=user.name,
+                education=user.education or "Professional",
+                location=user.location or "Global"
+            )
+        
         # Get messages
         messages = db.query(ChatMessage).filter(
             ChatMessage.session_id == session_id
@@ -342,6 +353,7 @@ async def get_chat_history(
         
         return ChatHistoryResponse(
             session_id=session_id,
+            user_context=user_context,
             messages=message_dtos
         )
     

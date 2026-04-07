@@ -85,6 +85,7 @@ class ChatMessageDTO(BaseModel):
 class ChatHistoryResponse(BaseModel):
     """Response containing chat history"""
     session_id: str
+    user_context: Optional[UserContext] = None
     messages: List[ChatMessageDTO]
 
 

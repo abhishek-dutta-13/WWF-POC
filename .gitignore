@@ -43,6 +43,9 @@ htmlcov/
 *.bak
 .cache/
 
+# Documentation with sensitive test data
+docs/quickbase-integration-testing.md
+
 # Vector store (ChromaDB)
 # Option 1: Ignore if recreating on deployment (use ingestion notebook on server)
 # vector_store/

@@ -246,8 +246,8 @@
                             setSessionId(existingSessionId);
                             setMessages(historyData.messages || []);
                             
-                            // Set user context from URL or defaults
-                            const userCtx = {
+                            // Set user context from backend response
+                            const userCtx = historyData.user_context || {
                                 user_id: userId,
                                 name: urlParams.get('name') || 'User',
                                 education: urlParams.get('education') || 'Professional',
