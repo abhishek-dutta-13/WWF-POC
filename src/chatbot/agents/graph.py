@@ -91,6 +91,7 @@ class ChatbotWorkflow:
         rag_context = ""
         web_context = ""
         sources = []
+        actual_agent_used = route
         
         if route in ['rag', 'hybrid']:
             logger.info("[Workflow] Calling RAG Agent...")
@@ -100,6 +101,18 @@ class ChatbotWorkflow:
             )
             sources.extend(rag_sources)
             logger.info(f"[Workflow] RAG Agent returned {len(rag_sources)} sources")
+            
+            # Smart fallback: If RAG route but no good results, try web search instead
+            if route == 'rag' and len(rag_sources) < 2:
+                logger.warning(f"[Workflow] RAG returned insufficient results ({len(rag_sources)} sources). Falling back to web search for better coverage.")
+                logger.info("[Workflow] Calling Web Search Agent (fallback)...")
+                web_context, web_sources = self.web_search_agent.search(
+                    query=query,
+                    user_location=user_context.location
+                )
+                sources.extend(web_sources)
+                logger.info(f"[Workflow] Web Search Agent returned {len(web_sources)} sources")
+                actual_agent_used = 'web_search'  # Update to reflect actual agent used
         
         if route in ['web_search', 'hybrid']:
             logger.info("[Workflow] Calling Web Search Agent...")
@@ -123,11 +136,11 @@ class ChatbotWorkflow:
         result = {
             'response': response,
             'sources': sources,
-            'agent_used': route,
+            'agent_used': actual_agent_used,  # Use actual agent (may differ from route due to fallback)
             'pdf_requested': False
         }
         
-        logger.info(f"[Workflow] Completed with {len(sources)} total sources")
+        logger.info(f"[Workflow] Completed with {len(sources)} total sources using {actual_agent_used} agent")
         
         return result
     

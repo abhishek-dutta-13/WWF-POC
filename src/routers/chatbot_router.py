@@ -320,13 +320,23 @@ async def get_chat_history(
         message_dtos = []
         for msg in messages:
             sources = None
-            if msg.message_metadata and 'sources' in msg.message_metadata:
-                sources = [Source(**s) for s in msg.message_metadata['sources']]
+            agent_used = None
+            pdf_url = None
+            
+            if msg.message_metadata:
+                if 'sources' in msg.message_metadata:
+                    sources = [Source(**s) for s in msg.message_metadata['sources']]
+                if 'agent_used' in msg.message_metadata:
+                    agent_used = msg.message_metadata['agent_used']
+                if 'pdf_url' in msg.message_metadata:
+                    pdf_url = msg.message_metadata['pdf_url']
             
             message_dtos.append(ChatMessageDTO(
                 role=msg.role,
                 content=msg.content,
                 sources=sources,
+                agent_used=agent_used,
+                pdf_url=pdf_url,
                 timestamp=msg.timestamp.isoformat()
             ))
         
@@ -382,14 +392,15 @@ async def get_user_sessions(
                 ChatMessage.session_id == session.session_id
             ).count()
             
-            # Get last message preview
-            last_message = db.query(ChatMessage).filter(
-                ChatMessage.session_id == session.session_id
-            ).order_by(ChatMessage.timestamp.desc()).first()
+            # Get first user message for preview
+            first_message = db.query(ChatMessage).filter(
+                ChatMessage.session_id == session.session_id,
+                ChatMessage.role == "user"
+            ).order_by(ChatMessage.timestamp).first()
             
             preview = None
-            if last_message:
-                preview = last_message.content[:100] + "..." if len(last_message.content) > 100 else last_message.content
+            if first_message:
+                preview = first_message.content[:100] + "..." if len(first_message.content) > 100 else first_message.content
             
             session_summaries.append(ChatSessionSummary(
                 session_id=session.session_id,
@@ -407,6 +418,18 @@ async def get_user_sessions(
     except Exception as e:
         logger.error(f"Error retrieving user sessions: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve user sessions: {str(e)}")
+
+
+@router.get("/sessions/{user_id}", response_model=UserSessionsResponse)
+async def get_sessions_alias(
+    user_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Alias for /user/{user_id}/sessions endpoint
+    Provides simpler URL for frontend compatibility
+    """
+    return await get_user_sessions(user_id, db)
 
 
 @router.get("/download/{filename}")

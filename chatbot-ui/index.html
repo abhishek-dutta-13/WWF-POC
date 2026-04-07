@@ -45,6 +45,23 @@
             height: calc(100% - 120px);
         }
         
+        .sidebar {
+            width: 280px;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        
+        .session-item {
+            transition: all 0.2s ease;
+        }
+        
+        .session-item:hover {
+            transform: translateX(4px);
+        }
+        
         .message-bubble {
             animation: fadeIn 0.3s ease-in;
         }
@@ -115,10 +132,12 @@
             const [sessionId, setSessionId] = useState(null);
             const [userContext, setUserContext] = useState(null);
             const [messages, setMessages] = useState([]);
+            const [sessions, setSessions] = useState([]);
             const [inputMessage, setInputMessage] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const [isInitializing, setIsInitializing] = useState(true);
             const [error, setError] = useState(null);
+            const [showSidebar, setShowSidebar] = useState(true);
             const messagesEndRef = useRef(null);
 
             // Auto-scroll to bottom
@@ -129,6 +148,80 @@
             useEffect(() => {
                 scrollToBottom();
             }, [messages]);
+
+            // Fetch user sessions
+            const fetchSessions = async (userId) => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/chatbot/sessions/${userId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setSessions(data.sessions || []);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch sessions:', err);
+                }
+            };
+
+            // Load session history
+            const loadSession = async (sessionIdToLoad) => {
+                try {
+                    setIsLoading(true);
+                    const response = await fetch(`${API_BASE_URL}/chatbot/session/${sessionIdToLoad}/history`);
+                    
+                    if (!response.ok) throw new Error('Failed to load session history');
+                    
+                    const data = await response.json();
+                    setSessionId(sessionIdToLoad);
+                    setMessages(data.messages || []);
+                } catch (err) {
+                    console.error('Load session error:', err);
+                    setError('Failed to load session history');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // Create new chat session
+            const createNewChat = async () => {
+                try {
+                    setIsLoading(true);
+                    const response = await fetch(`${API_BASE_URL}/chatbot/session/init`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userContext)
+                    });
+
+                    if (!response.ok) throw new Error('Failed to create new session');
+
+                    const data = await response.json();
+                    setSessionId(data.session_id);
+
+                    // Add welcome message
+                    setMessages([{
+                        role: 'assistant',
+                        content: data.welcome_message,
+                        timestamp: new Date().toISOString(),
+                        sources: []
+                    }]);
+
+                    // Refresh sessions list
+                    await fetchSessions(userContext.user_id);
+                } catch (err) {
+                    console.error('Create new chat error:', err);
+                    setError('Failed to create new chat session');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // Close chat and return to launcher
+            const closeChat = () => {
+                window.close();
+                // If window.close() doesn't work (new tab), redirect to launcher
+                setTimeout(() => {
+                    window.location.href = 'launcher.html';
+                }, 100);
+            };
 
             // Initialize session from URL parameters
             useEffect(() => {
@@ -163,6 +256,9 @@
                             timestamp: new Date().toISOString(),
                             sources: []
                         }]);
+
+                        // Fetch user's chat sessions
+                        await fetchSessions(userId);
 
                         setIsInitializing(false);
                     } catch (err) {
@@ -264,21 +360,110 @@
                     <header className="bg-white shadow-md border-b-4 border-wwf-orange">
                         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => setShowSidebar(!showSidebar)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                                    title="Toggle sidebar"
+                                >
+                                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
                                 <img src="wwf-logo-new.jpg" alt="WWF Logo" style={{height: '60px', width: 'auto'}} />
                                 <div>
                                     <h1 className="text-2xl font-bold text-gray-800">WWF Sustainability Assistant</h1>
                                     <p className="text-sm text-gray-500">Powered by AI • Real-time Knowledge</p>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-gray-700">{userContext?.name}</p>
-                                <p className="text-xs text-gray-500">{userContext?.location}</p>
+                            <div className="flex items-center space-x-4">
+                                <div className="text-right">
+                                    <p className="text-sm font-medium text-gray-700">{userContext?.name}</p>
+                                    <p className="text-xs text-gray-500">{userContext?.location}</p>
+                                </div>
+                                <button
+                                    onClick={createNewChat}
+                                    className="bg-wwf-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center space-x-2"
+                                    title="Start new chat"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span className="text-sm font-medium">New Chat</span>
+                                </button>
+                                <button
+                                    onClick={closeChat}
+                                    className="p-2 hover:bg-red-50 rounded-lg transition text-gray-600 hover:text-red-600"
+                                    title="Close chat"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </header>
 
-                    {/* Chat Container */}
-                    <div className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 chat-container">
+                    {/* Main Content with Sidebar */}
+                    <div className="flex flex-1 overflow-hidden">
+                        {/* Sidebar - Chat History */}
+                        {showSidebar && (
+                            <div className="sidebar bg-white border-r border-gray-200 flex flex-col shadow-lg">
+                                <div className="p-4 border-b border-gray-200">
+                                    <h2 className="text-lg font-bold text-gray-800 mb-1">Chat History</h2>
+                                    <p className="text-xs text-gray-500">{sessions.length} conversation{sessions.length !== 1 ? 's' : ''}</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                    {sessions.length === 0 ? (
+                                        <p className="text-sm text-gray-400 text-center py-8">No chat history yet</p>
+                                    ) : (
+                                        sessions.map((session) => (
+                                            <div
+                                                key={session.session_id}
+                                                onClick={() => loadSession(session.session_id)}
+                                                className={`session-item p-3 rounded-lg cursor-pointer ${
+                                                    session.session_id === sessionId
+                                                        ? 'bg-wwf-orange text-white'
+                                                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium truncate">
+                                                            {session.preview || 'New conversation'}
+                                                        </p>
+                                                        <p className={`text-xs mt-1 ${
+                                                            session.session_id === sessionId ? 'text-orange-100' : 'text-gray-500'
+                                                        }`}>
+                                                            {new Date(session.started_at).toLocaleDateString('en-US', {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                hour: 'numeric',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                    {session.session_id === sessionId && (
+                                                        <svg className="w-5 h-5 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                {session.message_count > 0 && (
+                                                    <p className={`text-xs mt-2 ${
+                                                        session.session_id === sessionId ? 'text-orange-100' : 'text-gray-400'
+                                                    }`}>
+                                                        {session.message_count} message{session.message_count !== 1 ? 's' : ''}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Chat Container */}
+                        <div className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 chat-container">
                         {/* Messages Area */}
                         <div className="messages-container overflow-y-auto space-y-4 mb-4 px-2">
                             {messages.map((msg, idx) => (
@@ -324,6 +509,7 @@
                         </form>
                     </div>
                 </div>
+            </div>
             );
         }
 

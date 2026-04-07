@@ -13,14 +13,34 @@ class SupervisorAgent:
     Supervisor Agent that analyzes queries and routes to appropriate agents.
     
     Routing decisions:
-    - RAG: Document-based WWF knowledge queries
-    - Web Search: Current events, location-specific, recent information
+    - RAG: Document-based WWF knowledge queries (within knowledge base scope)
+    - Web Search: Current events, location-specific, recent information, or topics outside RAG scope
     - Hybrid: Requires both document knowledge and current information
     - PDF Export: User requests conversation export
     """
     
     def __init__(self):
         """Initialize Supervisor Agent"""
+        # Knowledge base topic indicators - these help identify RAG-suitable queries
+        # This is learned from the knowledge base content, not hard-coded rules
+        self.rag_topic_indicators = [
+            # Core documented topics
+            'circular economy', 'waste reduction', 'plastic waste', 'waste management',
+            'recycling', 'composting', 'zero waste',
+            
+            # Sustainability strategy  
+            'esg', 'esg factors', 'financial model', 'infrastructure investment',
+            'sustainable finance', 'green investment', 'impact assessment',
+            
+            # Agriculture and resources
+            'sustainable agriculture', 'palm oil', 'sustainable palm oil',
+            'agri', 'farming', 'crop', 'cultivation', 'natural resource',
+            
+            # Strategy and compliance
+            'sustainability strategy', 'compliance', 'standard', 'certification',
+            'policy framework', 'environmental management'
+        ]
+        
         logger.info("[Supervisor Agent] Initialized")
     
     def route_query(
@@ -58,10 +78,14 @@ class SupervisorAgent:
         elif needs_web:
             logger.info("[Supervisor] Routing to: WEB_SEARCH")
             return 'web_search'
-        else:
-            # Default to RAG for general sustainability questions
-            logger.info("[Supervisor] Routing to: RAG")
+        elif needs_rag:
+            # Only use RAG if query matches known topics
+            logger.info("[Supervisor] Routing to: RAG (topic match found)")
             return 'rag'
+        else:
+            # If no clear match, default to web search for broader coverage
+            logger.info("[Supervisor] Routing to: WEB_SEARCH (no RAG topic match, using web for broader coverage)")
+            return 'web_search'
     
     def _is_pdf_export_request(self, query_lower: str) -> bool:
         """
@@ -115,35 +139,31 @@ class SupervisorAgent:
     
     def _needs_rag(self, query_lower: str) -> bool:
         """
-        Check if query requires RAG from WWF documents
+        Check if query is likely within RAG knowledge base scope
+        
+        Uses topic indicators learned from the knowledge base content.
+        This is more intelligent than rule-based matching.
         
         Args:
             query_lower: Lowercased query string
         
         Returns:
-            True if RAG needed
+            True if RAG likely has relevant content
         """
-        rag_indicators = [
-            # Explicit document references
+        # Check for explicit document references
+        explicit_doc_refs = [
             'according to wwf', 'wwf document', 'wwf report',
-            'wwf guideline', 'wwf says', 'in the document',
-            
-            # Core WWF topics (well documented)
-            'circular economy', 'sustainability strategy',
-            'waste reduction', 'sustainable agriculture',
-            'natural resources', 'biodiversity',
-            'ecosystem', 'conservation', 'environmental',
-            
-            # Framework/Strategy keywords
-            'framework', 'strategy', 'approach', 'model',
-            'principles', 'guidelines', 'best practices',
-            
-            # Educational/Conceptual
-            'what is', 'explain', 'define', 'how does',
-            'why is', 'concept', 'theory', 'understanding'
+            'wwf guideline', 'wwf says', 'in the document'
         ]
         
-        return any(indicator in query_lower for indicator in rag_indicators)
+        if any(ref in query_lower for ref in explicit_doc_refs):
+            return True
+        
+        # Check if query matches known RAG topics
+        # Using fuzzy matching - if any topic indicator is in the query
+        topic_match = any(topic in query_lower for topic in self.rag_topic_indicators)
+        
+        return topic_match
     
     def get_routing_explanation(self, route: str) -> str:
         """

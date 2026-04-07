@@ -102,9 +102,11 @@ class RAGAgent:
             # Convert to similarity: 1 - (distance / 2)
             filtered_results = []
             sources = []
+            max_similarity = 0.0
             
             for doc, metadata, distance in zip(documents, metadatas, distances):
                 similarity = 1 - (distance / 2)
+                max_similarity = max(max_similarity, similarity)
                 
                 if similarity >= self.relevance_threshold:
                     filtered_results.append(doc)
@@ -122,7 +124,10 @@ class RAGAgent:
             # Combine all filtered documents
             combined_context = "\n\n---\n\n".join(filtered_results)
             
-            logger.info(f"[RAG Agent] Retrieved {len(filtered_results)} relevant chunks")
+            if len(filtered_results) == 0:
+                logger.warning(f"[RAG Agent] No chunks met relevance threshold {self.relevance_threshold}. Best similarity: {max_similarity:.2f}")
+            else:
+                logger.info(f"[RAG Agent] Retrieved {len(filtered_results)} relevant chunks (best similarity: {max_similarity:.2f})")
             
             return combined_context, sources
         

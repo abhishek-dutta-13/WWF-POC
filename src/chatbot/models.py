@@ -77,6 +77,8 @@ class ChatMessageDTO(BaseModel):
     role: Literal['user', 'assistant']
     content: str
     sources: Optional[List[Source]] = None
+    agent_used: Optional[Literal['rag', 'web_search', 'hybrid', 'pdf_export']] = None
+    pdf_url: Optional[str] = None
     timestamp: str
 
 

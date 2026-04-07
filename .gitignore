@@ -1,3 +1,5 @@
+# Ignore ChromaDB vector store after initial commit
+vector_store/
 
 # Python
 __pycache__/
@@ -53,3 +55,5 @@ htmlcov/
 
 # Micro-learning output (generated content for testing)
 data/microlearning_output/
+
+ 
