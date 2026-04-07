@@ -9,9 +9,9 @@ It supports three categories:
 - Renewable Energy
 
 Features:
-- Generates 1 set of 25 questions per category
+- Generates 1 set of 30 questions per category
 - Each question includes 4 options, correct answer, and explanation
-- Implements rate limiting (61-second delays every 5 questions) to prevent API errors
+- Implements rate limiting (61-second delays every 10 questions) to prevent API errors
 - All questions have set_number = 1
 
 Security: Implements input validation, rate limiting considerations, and secure file handling.
@@ -358,7 +358,7 @@ def generate_mcq_set(
     content: str,
     category: str,
     set_number: int,
-    num_questions: int = 5
+    num_questions: int = 10
 ) -> Optional[Dict[str, Any]]:
     """
     Generate a set of MCQ questions using Groq API.
@@ -535,12 +535,12 @@ def generate_mcqs_with_rate_limiting(
     content: str,
     category: str,
     set_number: int,
-    total_questions: int = 25
+    total_questions: int = 30
 ) -> Optional[Dict[str, Any]]:
     """
     Generate MCQs in batches with rate limiting to avoid API errors.
     
-    Generates questions in batches of 5 with a 61-second delay between batches
+    Generates questions in batches of 10 with a 61-second delay between batches
     to comply with Groq API rate limits.
     
     Args:
@@ -548,7 +548,7 @@ def generate_mcqs_with_rate_limiting(
         content: Text content from which to generate questions
         category: Category name
         set_number: Set number (always 1 for new requirements)
-        total_questions: Total number of questions to generate (default: 25)
+        total_questions: Total number of questions to generate (default: 30)
         
     Returns:
         Dictionary containing MCQ set with all questions or None if generation fails
@@ -558,8 +558,8 @@ def generate_mcqs_with_rate_limiting(
     """
     logger.info(f"Starting batch generation of {total_questions} questions for {category}")
     
-    # Calculate number of batches (5 questions per batch)
-    batch_size = 5
+    # Calculate number of batches (10 questions per batch)
+    batch_size = 10
     num_batches = (total_questions + batch_size - 1) // batch_size  # Ceiling division
     all_questions = []
     
@@ -661,15 +661,15 @@ def process_category_mcqs(category: str) -> List[Dict[str, Any]]:
     
     logger.info(f"Extracted {len(combined_content)} characters from {len(pdf_files)} PDF(s) in category {category}")
     
-    # Generate 1 set of 25 MCQs with rate limiting
+    # Generate 1 set of 30 MCQs with rate limiting
     # Set number is always 1 as per new requirements
-    logger.info(f"Generating single set of 25 questions for {category}")
+    logger.info(f"Generating single set of 30 questions for {category}")
     mcq_set = generate_mcqs_with_rate_limiting(
         groq_client,
         combined_content,
         category,
         set_number=1,
-        total_questions=25
+        total_questions=30
     )
     
     if mcq_set:
