@@ -1,6 +1,3 @@
-# Ignore ChromaDB vector store after initial commit
-vector_store/
-
 # Python
 __pycache__/
 *.pyc
