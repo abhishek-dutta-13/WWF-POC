@@ -28,6 +28,7 @@ from chromadb.utils import embedding_functions
 
 # LLM
 from groq import Groq
+from openai import OpenAI
 
 # Environment
 from dotenv import load_dotenv
@@ -70,11 +71,14 @@ class MicrolearningGenerator:
         """
         self.vector_store_path = vector_store_path
         self.embedding_model_name = embedding_model
+        self.openai_api_key = openai_api_key
+        
         # Model fallback chain (in order of preference)
         self.models = [
-            "meta-llama/llama-4-scout-17b-16e-instruct",  # Primary
-            "meta-llama/llama-prompt-guard-2-22m",          # Fallback 1
-            "llama-3.3-70b-versatile"                        # Fallback 2 (original)
+            "meta-llama/llama-4-scout-17b-16e-instruct",  # Primary (Groq)
+            "meta-llama/llama-prompt-guard-2-22m",          # Fallback 1 (Groq)
+            "llama-3.3-70b-versatile",                       # Fallback 2 (Groq)
+            "gpt-3.5-turbo"                                   # Fallback 3 (OpenAI - lowest cost)
         ]
         self.llm_model = self.models[0]
         self.collection_name = collection_name
@@ -101,6 +105,10 @@ class MicrolearningGenerator:
         # Initialize Groq client
         logger.info("Initializing Groq LLM client")
         self.groq_client = Groq(api_key=groq_api_key)
+        
+        # Initialize OpenAI client (for fallback)
+        logger.info("Initializing OpenAI client (for fallback)")
+        self.openai_client = OpenAI(api_key=openai_api_key)
     
     def _load_category_mappings(self) -> Dict[str, str]:
         """
@@ -234,41 +242,65 @@ class MicrolearningGenerator:
         # Try each model in fallback chain
         for attempt, model in enumerate(self.models, 1):
             try:
-                # Call Groq LLM
-                logger.info(f"Attempt {attempt}/{len(self.models)}: Calling Groq LLM with model {model}")
-                response = self.groq_client.chat.completions.create(
-                    model=model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are an expert instructional designer specializing in sustainability education. Create comprehensive, detailed micro-learning content that is educational, engaging, and practical."
-                        },
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    temperature=0.7,
-                    max_tokens=8000,
-                    response_format={"type": "json_object"}
-                )
+                # Determine provider (Groq or OpenAI)
+                is_openai = model.startswith("gpt-")
+                provider = "OpenAI" if is_openai else "Groq"
+                
+                logger.info(f"🚀 Attempt {attempt}/{len(self.models)}: Using {provider} model '{model}'")
+                
+                if is_openai:
+                    # Call OpenAI
+                    response = self.openai_client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are an expert instructional designer specializing in sustainability education. Create comprehensive, detailed micro-learning content that is educational, engaging, and practical."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=0.7,
+                        max_tokens=8000,
+                        response_format={"type": "json_object"}
+                    )
+                else:
+                    # Call Groq
+                    response = self.groq_client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are an expert instructional designer specializing in sustainability education. Create comprehensive, detailed micro-learning content that is educational, engaging, and practical."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=0.7,
+                        max_tokens=8000,
+                        response_format={"type": "json_object"}
+                    )
                 
                 # Parse result
                 result = json.loads(response.choices[0].message.content)
-                logger.info(f"✅ Success with model: {model}")
+                logger.info(f"✅ SUCCESS: Generated content using {provider} model '{model}'")
                 self.llm_model = model  # Update current model on success
                 break  # Exit loop on success
             
             except Exception as model_error:
-                logger.warning(f"❌ Failed with model {model}: {str(model_error)}")
+                logger.warning(f"❌ FAILED with {provider} model '{model}': {str(model_error)}")
                 
                 # If this is the last model, raise the error
                 if attempt == len(self.models):
-                    logger.error(f"All models failed. Last error: {str(model_error)}")
+                    logger.error(f"🛑 All {len(self.models)} models failed. Last error: {str(model_error)}")
                     raise
                 
                 # Otherwise, continue to next model
-                logger.info("Trying next model in fallback chain...")
+                logger.info(f"⏭️  Trying next model in fallback chain ({attempt + 1}/{len(self.models)})...")
                 continue
         
         try:
