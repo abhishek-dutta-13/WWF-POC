@@ -1,313 +1,123 @@
-# 🚀 Quick Start Guide - Micro-Learning Module Generator
+# 🚀 Quick Start - Local Server Testing
 
-## ⚡ 5-Minute Setup
+## Step-by-Step Guide
 
-### 1. Install Dependencies (2 minutes)
-
-```powershell
-cd "C:\Users\abhishek.j.dutta\OneDrive - Accenture\Desktop\Courses\Udemy\rag\WWF"
-pip install -r requirements.txt
+### 1️⃣ Check Configuration
+Run the configuration checker first:
+```cmd
+python check_config.py
 ```
 
-### 2. Create Vector Store (5-10 minutes)
+This will verify:
+- ✅ Environment variables (.env)
+- ✅ Python packages installed
+- ✅ Project structure
+- ✅ Vector store exists
 
-```powershell
-# Start Jupyter
-jupyter notebook
+### 2️⃣ Start the Server
 
-# Open and run ALL cells in:
-Notebook/01_data_ingestion_vector_store.ipynb
+**Option A: Easy Start (Recommended)**
+```cmd
+run_server.cmd
 ```
 
-**Wait for**: `✅ VECTOR STORE CREATION COMPLETE!`
-
-### 3. Test Locally (30 seconds)
-
-```powershell
-# Terminal 1: Start API
+**Option B: Manual Start**
+```cmd
 cd src
-uvicorn mcq_api_service:app --reload --port 8000
-
-# Terminal 2: Test endpoint
-curl --location "http://localhost:8000/generate-microlearning-quickbase" --header "Content-Type: application/json" --data "{\"category\":\"circular_economy_and_waste_reduction\"}"
+python main.py
 ```
 
-**✅ Done!** You should see JSON with chapters and micro-contents.
+Server will start on: **http://localhost:8000**
 
----
+### 3️⃣ Test with Postman
 
-## 📡 API Commands Reference
+1. **Import Collection**
+   - Open Postman
+   - Click "Import"
+   - Select: `Postman_Collection_WWF_API.json`
 
-### All Available Endpoints
+2. **Test Health Check**
+   ```
+   GET http://localhost:8000/health
+   ```
 
-```powershell
-# Health check
-curl http://localhost:8000/health
+3. **Test MCQ Generation**
+   ```
+   POST http://localhost:8000/generate-mcqs-quickbase
+   Body: {"CourseID": "001"}
+   ```
 
-# List all endpoints and categories
-curl http://localhost:8000/
+4. **Test Microlearning Generation**
+   ```
+   POST http://localhost:8000/generate-microlearning-quickbase
+   Body: {"CourseID": "001"}
+   ```
 
-# Get available categories
-curl http://localhost:8000/categories
-```
+## 📁 Files Created
 
-### MCQ Generation
+| File | Purpose |
+|------|---------|
+| `run_server.cmd` | Windows batch file to start server easily |
+| `check_config.py` | Verify configuration before starting |
+| `Postman_Collection_WWF_API.json` | Pre-configured Postman requests |
+| `LOCAL_SERVER_GUIDE.md` | Detailed server documentation |
 
-```powershell
-# Standard format
-curl --location "http://localhost:8000/generate-mcqs" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "circular_economy_and_waste_reduction"
-  }'
+## 🎯 Available Endpoints
 
-# Quickbase format
-curl --location "http://localhost:8000/generate-mcqs-quickbase" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "circular_economy_and_waste_reduction"
-  }'
-```
+Once server is running:
 
-### Micro-Learning Generation (NEW)
+- **API Info**: http://localhost:8000/
+- **API Docs**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
 
-```powershell
-# Local
-curl --location "http://localhost:8000/generate-microlearning-quickbase" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "circular_economy_and_waste_reduction"
-  }'
+### Main Endpoints:
 
-# Production (Render)
-curl --location "https://wwf-poc.onrender.com/generate-microlearning-quickbase" \
-  --header "Content-Type: application/json" \
-  --header "X-API-Key: your_api_key_here" \
-  --data '{
-    "category": "circular_economy_and_waste_reduction"
-  }'
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/generate-mcqs-quickbase` | POST | Generate MCQs + Push to Quickbase |
+| `/generate-microlearning-quickbase` | POST | Generate Microlearning + Push to Quickbase |
+| `/generate-microlearning-modules` | POST | Generate Microlearning (No Push) |
 
----
+## 📋 Request Format
 
-## 📋 All Categories
-
-Copy-paste ready commands for all categories:
-
-### Category 1: Circular Economy and Waste Reduction
-
-```powershell
-curl --location "http://localhost:8000/generate-microlearning-quickbase" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "circular_economy_and_waste_reduction"
-  }'
-```
-
-### Category 2: Sustainability Strategy and Compliance
-
-```powershell
-curl --location "http://localhost:8000/generate-microlearning-quickbase" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "sustainability_strategy_and_compliance"
-  }'
-```
-
-### Category 3: Sustainable Agriculture and Natural Resources
-
-```powershell
-curl --location "http://localhost:8000/generate-microlearning-quickbase" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "category": "sustainable_agriculture_and_natural_resources"
-  }'
-```
-
----
-
-## 🔍 Testing Checklist
-
-After setup, verify each step:
-
-- [ ] Vector store created: `dir vector_store` shows files
-- [ ] API starts without errors
-- [ ] Health check returns "healthy"
-- [ ] Categories endpoint shows 3 categories
-- [ ] Micro-learning generates 4-6 chapters
-- [ ] Each micro-content is 150-300 words
-- [ ] JSON structure matches requirements
-- [ ] Response time is 5-15 seconds (after first request)
-
----
-
-## 📊 Expected Outputs
-
-### Health Check Response
-
+All POST endpoints use the same format:
 ```json
 {
-  "status": "healthy",
-  "service": "MCQ Generator API",
-  "groq_api_configured": true
+  "CourseID": "001"
 }
 ```
 
-### Categories Response
+**Course IDs:**
+- `001` - Circular Economy and Waste Reduction
+- `002` - Sustainability Strategy and Compliance  
+- `003` - Sustainable Agriculture and Natural Resources
 
-```json
-{
-  "categories": [
-    "circular_economy_and_waste_reduction",
-    "sustainability_strategy_and_compliance",
-    "sustainable_agriculture_and_natural_resources"
-  ],
-  "total": 3
-}
-```
+## 🐛 Common Issues
 
-### Micro-Learning Response Structure
+**Server won't start?**
+- Run `python check_config.py` to diagnose
+- Check `.env` file has all required variables
+- Install dependencies: `pip install -r requirements.txt`
 
-```json
-{
-  "categoryName": "Circular Economy And Waste Reduction",
-  "courseId": "COURSE-CIR-001",
-  "language": "English",
-  "chapters": [
-    {
-      "chapter": "Introduction to Circular Economy",
-      "microContents": [
-        {
-          "microContentId": "MC-001",
-          "microContent": "150-300 word detailed explanation..."
-        },
-        {
-          "microContentId": "MC-002",
-          "microContent": "Another detailed explanation..."
-        }
-      ]
-    }
-  ]
-}
-```
+**Vector store not found?**
+- Run `Notebook/01_data_ingestion_vector_store.ipynb` first
+
+**Quickbase push fails?**
+- Verify `QUICKBASE_USER_TOKEN` in `.env`
+- Check `QUICKBASE_REALM_HOSTNAME` is correct
+
+## 📖 Full Documentation
+
+See `LOCAL_SERVER_GUIDE.md` for detailed instructions.
 
 ---
 
-## ⚙️ Configuration
+**Ready to Deploy?**
 
-### Environment Variables (.env)
+Once local testing is complete:
+1. Test all endpoints in Postman ✅
+2. Verify Quickbase integration ✅
+3. Check logs for errors ✅
+4. Review response formats ✅
 
-```env
-# Required for all endpoints
-GROQ_API_KEY=gsk_your_actual_groq_api_key_here
-
-# Optional - for securing endpoints
-API_KEY=your_secure_api_key_here
-
-# Optional - custom vector store path
-VECTOR_STORE_PATH=C:\Users\abhishek.j.dutta\OneDrive - Accenture\Desktop\Courses\Udemy\rag\WWF\vector_store
-
-# Optional - CORS origins (comma-separated)
-ALLOWED_ORIGINS=*
-```
-
----
-
-## 🐛 Common Issues & Quick Fixes
-
-### Issue: "GROQ_API_KEY not found"
-
-```powershell
-# Check .env file exists
-dir .env
-
-# Verify content
-notepad .env
-
-# Should contain:
-# GROQ_API_KEY=gsk_...
-```
-
-### Issue: "No module named 'chromadb'"
-
-```powershell
-# Reinstall dependencies
-pip install -r requirements.txt --force-reinstall
-```
-
-### Issue: "No content found for category"
-
-```powershell
-# Re-run data ingestion notebook
-jupyter notebook
-# Open: Notebook/01_data_ingestion_vector_store.ipynb
-# Run all cells
-```
-
-### Issue: Port 8000 already in use
-
-```powershell
-# Use different port
-uvicorn mcq_api_service:app --reload --port 8001
-
-# Or kill existing process
-Get-Process -Name "python" | Stop-Process -Force
-```
-
-### Issue: Response too slow (> 30 seconds)
-
-**First request is always slower** (loads models). Subsequent requests should be 5-15 seconds.
-
-If still slow:
-- Reduce `top_k_chunks` to 15
-- Reduce `max_chunks_for_llm` to 10
-- Check internet connection (LLM API call)
-
----
-
-## 📈 Performance Benchmarks
-
-| Metric | Value |
-|--------|-------|
-| Vector store creation | 5-10 minutes (one-time) |
-| Cold start (first request) | 8-15 seconds |
-| Warm request | 5-10 seconds |
-| Vector retrieval | ~1 second |
-| LLM generation | 4-9 seconds |
-| Memory usage | 2-4 GB |
-| Vector store size | 50-200 MB |
-
----
-
-## 🎯 Next Steps
-
-1. **Test all three categories** to verify generation quality
-2. **Review generated content** in the testing notebook
-3. **Customize prompts** if needed for specific tone
-4. **Deploy to Render** for production use
-5. **Integrate with Quickbase** using the API
-
----
-
-## 📚 Documentation Links
-
-- **Full Setup Guide**: [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)
-- **Detailed Documentation**: [MICROLEARNING_README.md](MICROLEARNING_README.md)
-- **Main README**: [README.md](README.md)
-- **Quickbase Integration**: [QUICKBASE.md](QUICKBASE.md)
-
----
-
-## 💡 Pro Tips
-
-✅ **Warm up the API** on startup: Make a test request to initialize models  
-✅ **Cache results** for frequently requested categories  
-✅ **Monitor logs** for quality validation warnings  
-✅ **Version your vector store** when updating PDFs  
-✅ **Use the testing notebook** before deploying changes  
-
----
-
-**Ready to go!** 🚀
-
-Start with the vector store creation, then test locally. Deploy when you're confident in the results.
+Then proceed to deployment!

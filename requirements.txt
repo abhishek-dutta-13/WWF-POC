@@ -9,19 +9,20 @@ pydantic>=2.0.0
 
 # AI/LLM
 groq>=0.4.0
+openai>=1.12.0  # For OpenAI embeddings (text-embedding-3-small)
 
 # PDF Processing
 pypdf>=3.17.0
 
 # RAG and Vector Store
 chromadb>=0.4.22
-# sentence-transformers removed - using HuggingFace Inference API instead
 langchain>=0.1.0
 langchain-community>=0.0.20
+langchain-text-splitters>=0.0.1
 
 # Utilities
 python-dotenv>=1.0.0
-requests>=2.31.0  # Required for HuggingFace API calls
+requests>=2.31.0  # Required for Quickbase API calls
 
 # Optional: For enhanced logging
 python-multipart>=0.0.6

@@ -7,8 +7,10 @@ using a RAG (Retrieval-Augmented Generation) approach with ChromaDB and Groq LLM
 
 Features:
 - Category-based content retrieval from vector store
-- Multi-chapter structured learning modules
-- Extensive, detailed micro-content (150-300 words each)
+- Multi-chapter structured learning modules in ebook format
+- Extensive, detailed micro-content (250-400 words each)
+- Mix of paragraphs, bullet points, and numbered lists
+- Course ID mapping from categories.csv
 - JSON output format for Quickbase integration
 """
 
@@ -17,11 +19,12 @@ from pathlib import Path
 from typing import List, Dict, Optional
 import json
 import logging
+import csv
 from datetime import datetime
 
 # Vector store and embeddings
 import chromadb
-import requests
+from chromadb.utils import embedding_functions
 
 # LLM
 from groq import Groq
@@ -37,71 +40,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class HuggingFaceEmbeddings:
-    """
-    HuggingFace Inference API wrapper for generating embeddings.
-    Uses the free Inference API to generate embeddings without running models locally.
-    """
-    
-    def __init__(self, model_name: str, api_token: str):
-        """
-        Initialize HuggingFace embeddings client.
-        
-        Args:
-            model_name: HuggingFace model ID (e.g., 'sentence-transformers/all-MiniLM-L6-v2')
-            api_token: HuggingFace API token
-        """
-        self.model_name = model_name
-        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_name}"
-        self.headers = {"Authorization": f"Bearer {api_token}"}
-        logger.info(f"Initialized HuggingFace embeddings with model: {model_name}")
-    
-    def encode(self, texts: List[str], show_progress_bar: bool = False) -> List[List[float]]:
-        """
-        Generate embeddings for a list of texts using HuggingFace Inference API.
-        
-        Args:
-            texts: List of text strings to encode
-            show_progress_bar: Ignored (for compatibility with sentence-transformers)
-            
-        Returns:
-            List of embedding vectors
-        """
-        # Handle single string input
-        if isinstance(texts, str):
-            texts = [texts]
-        
-        try:
-            response = requests.post(
-                self.api_url,
-                headers=self.headers,
-                json={"inputs": texts, "options": {"wait_for_model": True}}
-            )
-            response.raise_for_status()
-            embeddings = response.json()
-            
-            # HuggingFace returns embeddings directly as list of lists
-            if isinstance(embeddings, list) and len(embeddings) > 0:
-                return embeddings
-            else:
-                raise ValueError(f"Unexpected response format from HuggingFace API")
-                
-        except requests.exceptions.RequestException as e:
-            logger.error(f"HuggingFace API request failed: {e}")
-            raise
-    
-    def get_sentence_embedding_dimension(self) -> int:
-        """
-        Get the dimension of embeddings (384 for all-MiniLM-L6-v2).
-        
-        Returns:
-            Embedding dimension
-        """
-        # For all-MiniLM-L6-v2, the dimension is 384
-        # For other models, you may need to adjust this
-        return 384
-
-
 class MicrolearningGenerator:
     """
     Generate comprehensive micro-learning modules using RAG.
@@ -114,8 +52,8 @@ class MicrolearningGenerator:
         self,
         vector_store_path: str,
         groq_api_key: str,
-        huggingface_token: str,
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        openai_api_key: str,
+        embedding_model: str = "text-embedding-3-small",
         llm_model: str = "llama-3.3-70b-versatile",
         collection_name: str = "wwf_knowledge_base"
     ):
@@ -125,8 +63,8 @@ class MicrolearningGenerator:
         Args:
             vector_store_path: Path to ChromaDB persistent storage
             groq_api_key: Groq API key
-            huggingface_token: HuggingFace API token
-            embedding_model: HuggingFace model ID for embeddings
+            openai_api_key: OpenAI API key for embeddings
+            embedding_model: OpenAI embedding model name
             llm_model: Groq LLM model name
             collection_name: ChromaDB collection name
         """
@@ -135,19 +73,64 @@ class MicrolearningGenerator:
         self.llm_model = llm_model
         self.collection_name = collection_name
         
-        # Initialize HuggingFace embedding model (via API)
-        logger.info(f"Initializing HuggingFace embeddings via API: {embedding_model}")
-        self.embedding_model = HuggingFaceEmbeddings(embedding_model, huggingface_token)
+        # Load category to course_id mapping
+        self.category_to_course_id = self._load_category_mappings()
+        
+        # Initialize OpenAI embedding function
+        logger.info(f"Initializing OpenAI embeddings: {embedding_model}")
+        self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
+            api_key=openai_api_key,
+            model_name=embedding_model
+        )
         
         # Initialize ChromaDB
         logger.info(f"Connecting to ChromaDB at: {vector_store_path}")
         self.chroma_client = chromadb.PersistentClient(path=vector_store_path)
-        self.collection = self.chroma_client.get_collection(name=collection_name)
+        self.collection = self.chroma_client.get_collection(
+            name=collection_name,
+            embedding_function=self.embedding_function
+        )
         logger.info(f"Connected to collection '{collection_name}' with {self.collection.count()} chunks")
         
         # Initialize Groq client
         logger.info("Initializing Groq LLM client")
         self.groq_client = Groq(api_key=groq_api_key)
+    
+    def _load_category_mappings(self) -> Dict[str, str]:
+        """
+        Load category to course_id mapping from CSV file.
+        
+        Returns:
+            Dictionary mapping category folder names to course IDs
+        """
+        category_to_course_id = {}
+        
+        # Construct path to categories.csv
+        base_path = Path(self.vector_store_path).parent
+        csv_path = base_path / "data" / "category_file" / "categories.csv"
+        
+        if not csv_path.exists():
+            logger.warning(f"categories.csv not found at {csv_path}, using default course IDs")
+            return {}
+        
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row.get('active', '').lower() == 'true':
+                        category_display = row.get('category_name', '').strip()
+                        course_id = row.get('course_id', '').strip()
+                        
+                        if category_display and course_id:
+                            # Convert display name to folder name format
+                            category_folder = category_display.lower().replace(' & ', '_and_').replace(' ', '_')
+                            category_to_course_id[category_folder] = course_id
+            
+            logger.info(f"Loaded {len(category_to_course_id)} category mappings from CSV")
+        except Exception as e:
+            logger.error(f"Error loading category mappings: {e}")
+        
+        return category_to_course_id
     
     def retrieve_category_content(
         self,
@@ -231,7 +214,9 @@ class MicrolearningGenerator:
         
         # Format category name for display
         category_display = category.replace('_', ' ').title()
-        course_id = f"COURSE-{category[:3].upper()}-001"
+        
+        # Get course_id from mapping, fallback to default if not found
+        course_id = self.category_to_course_id.get(category, "001")
         
         # Create comprehensive prompt
         prompt = self._create_microlearning_prompt(
@@ -313,35 +298,65 @@ class MicrolearningGenerator:
         Returns:
             Formatted prompt string
         """
-        prompt = f"""You are an expert instructional designer creating comprehensive micro-learning modules for sustainability education.
+        prompt = f"""You are an expert instructional designer creating comprehensive micro-learning modules for sustainability education in an ebook format.
 
-Based on the following WWF content about "{category_name}", create a detailed micro-learning course structure.
+Based on the following WWF content about "{category_name}", create a detailed micro-learning course structure formatted like a professional ebook.
 
 CONTENT:
 {content}
 
-REQUIREMENTS:
-1. Create 4-6 well-structured chapters covering key topics from the content
-2. Each chapter should have 3-5 micro-content items
-3. Each micro-content must be EXTENSIVE and DETAILED (150-300 words each)
-4. Include specific facts, examples, statistics, and actionable insights from the content
-5. Use clear, educational language suitable for professionals and learners
-6. Make content engaging, practical, and informative
-7. Ensure content flows logically from basic to advanced concepts
+EBOOK CONTENT STRUCTURE REQUIREMENTS:
 
-IMPORTANT - CONTENT QUALITY REQUIREMENTS:
-- DO NOT create one-liner or brief content
-- Each microContent should be a comprehensive paragraph that includes:
-  * Clear, detailed explanations of concepts
-  * Specific examples, case studies, or data from the source material
-  * Practical applications, implications, or real-world relevance
-  * Key takeaways or learning points
-  * Context and background information where appropriate
+1. **Chapters:** Create 4-6 well-structured chapters covering key topics from the content
 
-- Content should be educational and substantive
+2. **Content Style - Mix of Formats (like an ebook):**
+   - Start each section with an engaging introductory paragraph (2-3 sentences)
+   - Use descriptive paragraphs (3-5 sentences) to explain concepts in depth
+   - Include bullet points (•) for key facts, statistics, or lists
+   - Add numbered steps (1., 2., 3.) for processes or frameworks
+   - Use sub-headings or bold text for emphasis on key terms
+   - Include examples in paragraph form with specific details
+   - End sections with key takeaways or summary points
+
+3. **Each micro-content should be 250-400 words and include:**
+   - Opening paragraph introducing the topic
+   - Mix of paragraphs and bullet points for readability
+   - Specific facts, data, examples, and case studies from the source material
+   - Practical applications and real-world implications
+   - Professional, engaging tone suitable for adult learners
+   - Clear structure with logical flow
+
+4. **Formatting within microContent:**
+   - **Bold** key terms and important concepts (use markdown **text**)
+   - Use bullet points (•) for lists of items
+   - Use numbers (1., 2., 3.) for sequential steps or processes
+   - Include paragraph breaks for readability (use \n\n)
+   - Make content scannable yet comprehensive
+
+EXAMPLE EBOOK-STYLE FORMAT:
+"The circular economy represents a fundamental shift in resource management. Unlike the traditional linear 'take-make-dispose' model, it focuses on keeping materials in use and designing out waste.
+
+**Core Principles:**
+• Design products for longevity and reusability
+• Maintain materials at highest value through repair
+• Regenerate natural systems with sustainable practices
+
+Companies implementing these principles see significant benefits. Patagonia's repair program reduced waste by 73% while maintaining profitability. The Ellen MacArthur Foundation estimates circular approaches could generate $4.5 trillion in economic benefits by 2030.
+
+**Implementation Steps:**
+1. Conduct materials audit to identify waste streams
+2. Redesign products for disassembly and recycling
+3. Establish take-back programs for end-of-life products
+4. Partner with recycling and material recovery organizations
+
+This transformation requires commitment across the value chain, but the environmental and economic rewards make it compelling for sustainable business growth."
+
+IMPORTANT - CONTENT QUALITY:
+- DO NOT create brief one-liner content
+- Balance paragraphs with bullet points/numbered lists
+- Include specific data and examples from source material
+- Make content educational, practical, and well-structured
 - Use professional but accessible language
-- Include relevant terminology and definitions
-- Connect concepts to broader sustainability goals
 
 Return ONLY valid JSON in this exact format (no markdown, no code blocks):
 {{
@@ -439,6 +454,118 @@ Remember: Each microContent must be substantial, informative, and valuable for l
             )
         
         return validation
+    
+    def transform_to_quickbase_format(
+        self, 
+        microlearning_data: Dict, 
+        table_id: str = "bvxji8seh"
+    ) -> Dict:
+        """
+        Transform microlearning JSON to Quickbase payload format.
+        
+        Flattens chapters and microContents into individual records with Quickbase field IDs.
+        
+        Args:
+            microlearning_data: Generated microlearning modules dictionary
+            table_id: Quickbase table ID (default: "bvxji8seh")
+            
+        Returns:
+            Quickbase-formatted payload with structure:
+            {
+              "to": "table_id",
+              "data": [
+                {
+                  "12": {"value": "course_id"},
+                  "20": {"value": "microContentId"},
+                  "8": {"value": "language"},
+                  "6": {"value": "chapter"},
+                  "7": {"value": "content"}
+                }
+              ]
+            }
+        
+        Field Mapping:
+            - Field 6: Chapter (Text)
+            - Field 7: Content (Rich Text)
+            - Field 8: Language (Text - Multiple Choice)
+            - Field 12: Course ID (Text)
+            - Field 20: Micro Content ID (Text)
+        """
+        logger.info("Transforming microlearning data to Quickbase format")
+        
+        records = []
+        
+        # Extract top-level metadata
+        course_id = microlearning_data.get('courseId', '001')
+        language = microlearning_data.get('language', 'English')
+        
+        # Flatten chapters and microContents into individual records
+        for chapter in microlearning_data.get('chapters', []):
+            chapter_title = chapter.get('chapter', '')
+            
+            for micro_content in chapter.get('microContents', []):
+                record = {
+                    "12": {"value": course_id},                                    # Course ID
+                    "20": {"value": micro_content.get('microContentId', '')},      # MicroContent_id
+                    "8": {"value": language},                                       # Language
+                    "6": {"value": chapter_title},                                  # Chapter
+                    "7": {"value": micro_content.get('microContent', '')}          # Content
+                }
+                records.append(record)
+        
+        payload = {
+            "to": table_id,
+            "data": records
+        }
+        
+        logger.info(f"Transformed to {len(records)} Quickbase records for table {table_id}")
+        
+        return payload
+
+
+def transform_to_quickbase_format(
+    microlearning_data: Dict, 
+    table_id: str = "bvxji8seh"
+) -> Dict:
+    """
+    Standalone function to transform microlearning JSON to Quickbase payload format.
+    
+    This is a convenience function that can be used without instantiating MicrolearningGenerator.
+    
+    Args:
+        microlearning_data: Generated microlearning modules dictionary
+        table_id: Quickbase table ID (default: "bvxji8seh")
+        
+    Returns:
+        Quickbase-formatted payload
+        
+    Example:
+        >>> modules = {...generated microlearning modules...}
+        >>> payload = transform_to_quickbase_format(modules)
+        >>> # Ready to POST to Quickbase API
+    """
+    records = []
+    
+    course_id = microlearning_data.get('courseId', '001')
+    language = microlearning_data.get('language', 'English')
+    
+    for chapter in microlearning_data.get('chapters', []):
+        chapter_title = chapter.get('chapter', '')
+        
+        for micro_content in chapter.get('microContents', []):
+            record = {
+                "12": {"value": course_id},
+                "20": {"value": micro_content.get('microContentId', '')},
+                "8": {"value": language},
+                "6": {"value": chapter_title},
+                "7": {"value": micro_content.get('microContent', '')}
+            }
+            records.append(record)
+    
+    return {
+        "to": table_id,
+        "data": records
+    }
 
 
 def create_generator_from_env(env_path: Optional[str] = None) -> MicrolearningGenerator:
@@ -462,21 +589,21 @@ def create_generator_from_env(env_path: Optional[str] = None) -> MicrolearningGe
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY not found in environment variables")
     
-    huggingface_token = os.getenv("HUGGINGFACE_API_TOKEN")
-    if not huggingface_token:
-        raise ValueError("HUGGINGFACE_API_TOKEN not found in environment variables")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        raise ValueError("OPENAI_API_KEY not found in environment variables")
     
     # Determine vector store path
     # This can be overridden with an environment variable
     vector_store_path = os.getenv(
         "VECTOR_STORE_PATH",
-        str(Path(__file__).parent.parent / "vector_store")
+        str(Path(__file__).parent.parent.parent / "vector_store")
     )
     
     return MicrolearningGenerator(
         vector_store_path=vector_store_path,
         groq_api_key=groq_api_key,
-        huggingface_token=huggingface_token
+        openai_api_key=openai_api_key
     )
 
 

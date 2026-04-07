@@ -210,3 +210,44 @@ def push_mcqs_to_quickbase(
     """
     client = get_quickbase_client()
     return client.push_mcq_records(table_id, mcq_records)
+
+
+def push_microlearning_to_quickbase(
+    table_id: str,
+    microlearning_records: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Convenience function to push microlearning records to Quickbase.
+    
+    Args:
+        table_id: Quickbase table ID (e.g., "bvxji8seh")
+        microlearning_records: List of microlearning records in Quickbase format
+        
+    Returns:
+        Response dictionary with success status and details
+        
+    Example:
+        >>> records = [
+        ...     {
+        ...         "12": {"value": "001"},
+        ...         "20": {"value": "MC-001"},
+        ...         "8": {"value": "English"},
+        ...         "6": {"value": "Chapter Title"},
+        ...         "7": {"value": "Content..."}
+        ...     }
+        ... ]
+        >>> result = push_microlearning_to_quickbase("bvxji8seh", records)
+    """
+    logger.info(f"Preparing to push {len(microlearning_records)} microlearning records to Quickbase")
+    
+    # Security: Validate record structure
+    if not microlearning_records:
+        logger.warning("No microlearning records to push")
+        return {
+            "success": False,
+            "error": "No records provided",
+            "records_attempted": 0
+        }
+    
+    client = get_quickbase_client()
+    return client.push_records(table_id, microlearning_records)

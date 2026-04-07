@@ -10,12 +10,13 @@ Architecture:
 """
 
 from .mcq_service import generate_mcq_set, generate_mcqs_with_rate_limiting, process_category_mcqs
-from .microlearning_generator import MicrolearningGenerator, create_generator_from_env
+from .microlearning_generator import MicrolearningGenerator, create_generator_from_env, transform_to_quickbase_format
 
 __all__ = [
     'generate_mcq_set',
     'generate_mcqs_with_rate_limiting',
     'process_category_mcqs',
     'MicrolearningGenerator',
-    'create_generator_from_env'
+    'create_generator_from_env',
+    'transform_to_quickbase_format'
 ]
