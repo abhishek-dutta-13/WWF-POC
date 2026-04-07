@@ -227,40 +227,74 @@
             useEffect(() => {
                 const initSession = async () => {
                     try {
-                        // Get user context from URL parameters
+                        // Get parameters from URL
                         const urlParams = new URLSearchParams(window.location.search);
+                        
+                        // Check if session_id is provided (Quickbase flow)
+                        const existingSessionId = urlParams.get('session_id');
                         const userId = urlParams.get('user_id') || 'demo_user';
-                        const name = urlParams.get('name') || 'Demo User';
-                        const education = urlParams.get('education') || 'Sustainability Professional';
-                        const location = urlParams.get('location') || 'Global';
+                        
+                        if (existingSessionId) {
+                            // Quickbase flow: Load existing session
+                            console.log('[Chat] Loading existing session:', existingSessionId);
+                            
+                            // Load session history
+                            const historyResponse = await fetch(`${API_BASE_URL}/chatbot/session/${existingSessionId}/history`);
+                            if (!historyResponse.ok) throw new Error('Failed to load session');
+                            
+                            const historyData = await historyResponse.json();
+                            setSessionId(existingSessionId);
+                            setMessages(historyData.messages || []);
+                            
+                            // Set user context from URL or defaults
+                            const userCtx = {
+                                user_id: userId,
+                                name: urlParams.get('name') || 'User',
+                                education: urlParams.get('education') || 'Professional',
+                                location: urlParams.get('location') || 'Global'
+                            };
+                            setUserContext(userCtx);
+                            
+                            // Fetch user sessions
+                            await fetchSessions(userId);
+                            
+                            setIsInitializing(false);
+                        } else {
+                            // Original flow: Create new session from user params
+                            console.log('[Chat] Creating new session for user:', userId);
+                            
+                            const name = urlParams.get('name') || 'Demo User';
+                            const education = urlParams.get('education') || 'Sustainability Professional';
+                            const location = urlParams.get('location') || 'Global';
 
-                        const userCtx = { user_id: userId, name, education, location };
-                        setUserContext(userCtx);
+                            const userCtx = { user_id: userId, name, education, location };
+                            setUserContext(userCtx);
 
-                        // Initialize session with backend
-                        const response = await fetch(`${API_BASE_URL}/chatbot/session/init`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(userCtx)
-                        });
+                            // Initialize session with backend
+                            const response = await fetch(`${API_BASE_URL}/chatbot/session/init`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(userCtx)
+                            });
 
-                        if (!response.ok) throw new Error('Failed to initialize session');
+                            if (!response.ok) throw new Error('Failed to initialize session');
 
-                        const data = await response.json();
-                        setSessionId(data.session_id);
+                            const data = await response.json();
+                            setSessionId(data.session_id);
 
-                        // Add welcome message
-                        setMessages([{
-                            role: 'assistant',
-                            content: data.welcome_message,
-                            timestamp: new Date().toISOString(),
-                            sources: []
-                        }]);
+                            // Add welcome message
+                            setMessages([{
+                                role: 'assistant',
+                                content: data.welcome_message,
+                                timestamp: new Date().toISOString(),
+                                sources: []
+                            }]);
 
-                        // Fetch user's chat sessions
-                        await fetchSessions(userId);
+                            // Fetch user's chat sessions
+                            await fetchSessions(userId);
 
-                        setIsInitializing(false);
+                            setIsInitializing(false);
+                        }
                     } catch (err) {
                         console.error('Initialization error:', err);
                         setError('Failed to initialize chat. Please refresh the page.');

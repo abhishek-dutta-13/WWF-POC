@@ -426,6 +426,68 @@ LOG_LEVEL=INFO
 
 ---
 
+## 🔗 Quickbase Integration
+
+### Chatbot Integration Flow
+
+**Step 1: Quickbase Form Captures User Data**
+- User ID
+- Name  
+- Education/Background
+- Location
+
+**Step 2: Quickbase Pipeline POSTs to API**
+```javascript
+// Quickbase Pipeline Action: HTTP POST
+URL: https://wwf-poc.onrender.com/chatbot/session/init
+Method: POST
+Headers:
+  Content-Type: application/json
+Body:
+{
+  "user_id": "{{user_id}}",
+  "name": "{{name}}",
+  "education": "{{education}}",
+  "location": "{{location}}"
+}
+```
+
+**Step 3: Get Session ID from Response**
+```json
+{
+  "session_id": "abc-123-def-456",
+  "user_id": "user_001",
+  "message": "Chat session initialized successfully",
+  "welcome_message": "Hello! I'm here to help..."
+}
+```
+
+**Step 4: Open Chat Window**
+```javascript
+// Quickbase Pipeline Action: Open URL
+URL: https://wwf-poc.onrender.com/chat?session_id={{response.session_id}}&user_id={{user_id}}
+Target: New Window
+```
+
+**Result**: Chat window opens automatically with user's session initialized!
+
+### Example Quickbase Pipeline
+
+```yaml
+Trigger: Record Created/Updated
+Actions:
+  1. HTTP POST Request
+     - URL: https://wwf-poc.onrender.com/chatbot/session/init
+     - Body: User details JSON
+     - Save response to variable: init_response
+  
+  2. Open URL
+     - URL: https://wwf-poc.onrender.com/chat?session_id={{init_response.session_id}}&user_id={{user_id}}
+     - Target: New browser window
+```
+
+---
+
 ## 🧪 Testing
 
 ### Test Chatbot Locally
