@@ -3,6 +3,7 @@
 Chatbot Workflow Orchestration - Coordinates all agents
 """
 import logging
+from pathlib import Path
 from typing import Dict, List
 from chatbot.models import UserContext, Source
 from chatbot.agents.supervisor import SupervisorAgent
@@ -21,17 +22,25 @@ class ChatbotWorkflow:
     
     def __init__(
         self,
-        vector_store_path: str = "vector_store",
+        vector_store_path: str = None,
         collection_name: str = "wwf_knowledge_base"
     ):
         """
         Initialize chatbot workflow with all agents
         
         Args:
-            vector_store_path: Path to ChromaDB vector store
+            vector_store_path: Path to ChromaDB vector store (defaults to project root/vector_store)
             collection_name: ChromaDB collection name
         """
         logger.info("[Chatbot Workflow] Initializing agents...")
+        
+        # Calculate absolute path to vector_store if not provided
+        if vector_store_path is None:
+            # Get path relative to this file: graph.py is in src/chatbot/agents/
+            # Go up 3 levels to project root, then into vector_store
+            vector_store_path = str(Path(__file__).parent.parent.parent.parent / "vector_store")
+        
+        logger.info(f"[Chatbot Workflow] Using vector store path: {vector_store_path}")
         
         # Initialize all agents
         self.supervisor = SupervisorAgent()
