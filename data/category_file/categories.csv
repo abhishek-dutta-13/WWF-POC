@@ -1,4 +1,6 @@
-category_name,description,active
-circular_economy_and_waste_reduction,Circular Economy and Waste Reduction,true
-sustainability_strategy_and_compliance,Sustainability Strategy and Compliance,true
-sustainable_agriculture_and_natural_resources,Sustainable Agriculture and Natural Resources,true
+category_name,course_id,pdf_file_name,active
+Sustainable Agriculture & Natural Resources,003,agri_nr_1.pdf,TRUE
+Sustainable Agriculture & Natural Resources,003,agri_nr_2.pdf,TRUE
+Sustainability Strategy & Compliance,002,ssc_1.pdf,TRUE
+Circular Economy & Waste Reduction,001,cewr_1.pdf,TRUE
+Circular Economy & Waste Reduction,001,cewr_2.pdf,TRUE

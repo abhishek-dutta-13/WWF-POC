@@ -43,3 +43,13 @@ htmlcov/
 *.tmp
 *.bak
 .cache/
+
+# Vector store (ChromaDB)
+# Option 1: Ignore if recreating on deployment (use ingestion notebook on server)
+# vector_store/
+
+# Option 2: Commit if small enough (< 100MB) for Render deployment
+# Comment out the line above to include vector_store in Git
+
+# Micro-learning output (generated content for testing)
+data/microlearning_output/

@@ -1,10 +1,19 @@
-# 🚀 MCQ Generator API - Complete Guide
+# 🚀 WWF Sustainability Learning Platform - API Services
 
-Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout), deployed for free on Render.com.
+Generate educational content from WWF sustainability PDFs using Groq AI (Meta Llama 4 Scout), deployed for free on Render.com.
+
+**🎯 Available Services:**
+1. **MCQ Generator** - Multiple choice questions for assessments
+2. **Micro-Learning Module Generator** (NEW) - Comprehensive educational content using RAG
 
 **📖 Documentation:**
 - This file (README.md) - Complete deployment & usage guide
 - [QUICKBASE.md](QUICKBASE.md) - Quickbase integration details
+- [MICROLEARNING_README.md](MICROLEARNING_README.md) - Detailed micro-learning RAG implementation guide
+
+---
+
+## 🎓 Service 1: MCQ Generator
 
 **✨ Key Features:**
 - Generates **1 set of 25 questions** per category
@@ -21,6 +30,62 @@ Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout),
 
 *Categories are managed via `data/category_file/categories.csv` - add new categories without changing code!*
 
+**🔗 Endpoints:**
+- `POST /generate-mcqs` - Standard MCQ format
+- `POST /generate-mcqs-quickbase` - Quickbase-ready format
+
+---
+
+## 📚 Service 2: Micro-Learning Module Generator (NEW - RAG-powered)
+
+**✨ Key Features:**
+- **RAG-based content retrieval** from ChromaDB vector store
+- Generates **4-6 comprehensive chapters** per category
+- Each micro-content is **150-300 words** (extensive, not one-liners)
+- **Metadata filtering** for accurate category-specific content
+- Processes **multiple large PDFs** efficiently
+- **Production-ready** with quality validation
+
+**🔗 Endpoint:**
+- `POST /generate-microlearning-quickbase` - Comprehensive micro-learning modules
+
+**📊 Output Structure:**
+```json
+{
+  "categoryName": "Sustainability And Climate Change",
+  "courseId": "COURSE-001",
+  "language": "English",
+  "chapters": [
+    {
+      "chapter": "Chapter Title",
+      "microContents": [
+        {
+          "microContentId": "MC-001",
+          "microContent": "150-300 word detailed explanation..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+**🏗️ Architecture:**
+- **Embeddings**: HuggingFace Inference API (100% API-based, no local model loading!)
+- **Vector Store**: ChromaDB persistent storage
+- **Chunking**: 1000 characters with 800 character overlap
+- **Retrieval**: Top-20 relevant chunks per category
+- **Generation**: Groq LLM (Meta Llama 4 Scout)
+
+**⚡ Benefits**:
+- ✅ No local model loading (faster startup)
+- ✅ Minimal memory usage (~100MB vs 1-2GB)
+- ✅ Smaller deployment size
+- ✅ Free HuggingFace Inference API tier
+- ✅ Always up-to-date models
+
+**📘 For detailed setup and usage**, see [MICROLEARNING_README.md](MICROLEARNING_README.md)  
+**🔄 For API migration details**, see [HUGGINGFACE_MIGRATION_SUMMARY.md](HUGGINGFACE_MIGRATION_SUMMARY.md)
+
 ---
 
 ## 📋 Table of Contents
@@ -28,18 +93,21 @@ Generate Multiple Choice Questions from PDFs using Groq AI (Meta Llama 4 Scout),
 1. [Quick Start](#quick-start) - Deploy in 10 minutes
 2. [What This Does](#what-this-does)
 3. [Project Structure](#project-structure)
-4. [Push to GitHub](#step-1-push-to-github)
-5. [Deploy to Render](#step-2-deploy-to-render)
-6. [Test Deployment](#step-3-test-deployment)
-7. [Quickbase Integration](#step-4-quickbase-integration)
-8. [Updating Your App](#making-updates)
-9. [Troubleshooting](#troubleshooting)
+4. [Setup Vector Store (for Micro-Learning)](#setup-vector-store)
+5. [Push to GitHub](#step-1-push-to-github)
+6. [Deploy to Render](#step-2-deploy-to-render)
+7. [Test Deployment](#step-3-test-deployment)
+8. [Quickbase Integration](#step-4-quickbase-integration)
+9. [Making Updates](#making-updates)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## ⚡ Quick Start
 
-**Total Time: 10 minutes**
+**Total Time: 15 minutes (MCQ) + 30 minutes (Micro-Learning)**
+
+### For MCQ Generator Only:
 
 1. **Push to GitHub**:
    ```powershell
@@ -162,13 +230,92 @@ git push -u origin main
 
 ```
 WWF/
-├── README.md           # This file - complete guide
-├── QUICKBASE.md        # Quickbase integration details
-├── render.yaml         # Render deployment config (auto-detected)
-├── requirements.txt    # Python dependencies
-├── .gitignore          # What to exclude from Git
-├── .env                # Your secrets (local only, not pushed)
-├── .env.example        # Template for environment variables
+├── README.md                    # This file - complete guide
+├── MICROLEARNING_README.md      # Detailed micro-learning documentation (NEW)
+├── QUICKBASE.md                 # Quickbase integration details
+├── render.yaml                  # Render deployment config (auto-detected)
+├── requirements.txt             # Python dependencies (updated with RAG libraries)
+├── .gitignore                   # What to exclude from Git
+├── .env                         # Your secrets (local only, not pushed)
+├── .env.example                 # Template for environment variables
+├── data/                        # PDF documents by category
+│   ├── category_file/
+│   │   └── categories.csv       # Dynamic category management
+│   ├── circular_economy_and_waste_reduction/
+│   ├── sustainability_strategy_and_compliance/
+│   └── sustainable_agriculture_and_natural_resources/
+├── src/
+│   ├── mcq_api_service.py       # Main FastAPI application (MCQ + Micro-learning)
+│   └── microlearning_generator.py  # RAG-based micro-learning module (NEW)
+├── Notebook/                    # Jupyter notebooks for setup and testing (NEW)
+│   ├── 01_data_ingestion_vector_store.ipynb   # Create vector store
+│   └── 02_test_microlearning_generation.ipynb # Test micro-learning
+└── vector_store/                # ChromaDB persistent storage (NEW - create via notebook)
+    └── chroma.sqlite3           # Vector database
+```
+
+---
+
+## 🔧 Setup Vector Store (Required for Micro-Learning)
+
+**⚠️ Important**: The micro-learning endpoint requires a vector store. Follow these steps to create it.
+
+### Prerequisites
+
+```powershell
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Step 1: Run Data Ingestion Notebook
+
+1. **Start Jupyter**:
+   ```powershell
+   cd "C:\Users\abhishek.j.dutta\OneDrive - Accenture\Desktop\Courses\Udemy\rag\WWF"
+   jupyter notebook
+   ```
+
+2. **Open and Run**: `Notebook/01_data_ingestion_vector_store.ipynb`
+
+3. **What it does**:
+   - Extracts text from all PDFs in `data/{category}/` folders
+   - Chunks text with 1000 char size and 800 char overlap
+   - Generates embeddings using `sentence-transformers/all-MiniLM-L6-v2`
+   - Creates ChromaDB vector store at `vector_store/`
+   - Stores metadata (category, source_file, chunk_index) for filtering
+
+4. **Expected output**:
+   ```
+   ✅ VECTOR STORE CREATION COMPLETE!
+   💾 Total chunks stored: 500+
+   📁 Vector store location: C:\..\WWF\vector_store
+   🎯 Collection name: wwf_knowledge_base
+   ```
+
+### Step 2: Test Micro-Learning Generation (Optional)
+
+Run `Notebook/02_test_microlearning_generation.ipynb` to:
+- Test content retrieval for each category
+- Generate sample micro-learning modules
+- Validate content quality
+- Export JSON examples
+
+### Step 3: Verify Vector Store
+
+```powershell
+# Check if vector store was created
+dir vector_store
+```
+
+You should see files like:
+- `chroma.sqlite3` (main database)
+- Other ChromaDB metadata files
+
+**✅ Vector store is now ready for use!**
+
+The micro-learning API endpoint will automatically load the vector store when called.
+
+---
 ### A. Create Web Service
 
 1. Go to [dashboard.render.com](https://dashboard.render.com)
