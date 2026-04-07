@@ -36,8 +36,8 @@ def get_workflow() -> ChatbotWorkflow:
     """Get or create chatbot workflow instance"""
     global workflow
     if workflow is None:
+        # Let graph.py calculate the absolute path to vector_store
         workflow = ChatbotWorkflow(
-            vector_store_path=os.getenv("VECTOR_STORE_PATH", "vector_store"),
             collection_name=os.getenv("COLLECTION_NAME", "wwf_knowledge_base")
         )
     return workflow
