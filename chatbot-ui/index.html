@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WWF Sustainability Assistant</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="wwf-logo-new.jpg">
+    <link rel="shortcut icon" type="image/x-icon" href="wwf-logo-new.jpg">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -130,6 +134,47 @@
         /* Ensure links break properly */
         a {
             word-break: break-all;
+        }
+        
+        /* Enhanced animations */
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Glass effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #006072 0%, #FF6200 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 20px rgba(0, 96, 114, 0.3);
+        }
+        
+        /* Scale utilities */
+        .scale-102 {
+            transform: scale(1.02);
         }
     </style>
 </head>
@@ -408,14 +453,16 @@
             }
 
             return (
-                <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+                <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-white to-orange-50">
                     {/* Header */}
-                    <header className="bg-wwf-teal shadow-md">
-                        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                    <header className="bg-wwf-teal shadow-xl relative overflow-hidden">
+                        {/* Decorative gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+                        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between relative z-10">
+                            <div className="flex items-center space-x-3 slide-in">
                                 <button
                                     onClick={() => setShowSidebar(!showSidebar)}
-                                    className="p-2 hover:bg-wwf-teal-dark rounded-lg transition"
+                                    className="p-2 hover:bg-wwf-teal-dark rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-lg"
                                     title="Toggle sidebar"
                                 >
                                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,7 +482,7 @@
                                 </div>
                                 <button
                                     onClick={createNewChat}
-                                    className="bg-wwf-teal text-white px-4 py-2 rounded-lg hover:bg-wwf-teal-dark transition flex items-center space-x-2"
+                                    className="bg-gradient-to-r from-wwf-teal to-wwf-teal-dark text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center space-x-2"
                                     title="Start new chat"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,7 +492,7 @@
                                 </button>
                                 <button
                                     onClick={closeChat}
-                                    className="p-2 hover:bg-wwf-teal-dark rounded-lg transition text-white hover:text-gray-200"
+                                    className="p-2 hover:bg-red-500 rounded-lg transition-all duration-200 text-white hover:text-white hover:scale-110 hover:shadow-lg"
                                     title="Close chat"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,9 +507,9 @@
                     <div className="flex flex-1 overflow-hidden">
                         {/* Sidebar - Chat History */}
                         {showSidebar && (
-                            <div className="sidebar bg-white border-r border-gray-200 flex flex-col shadow-lg">
-                                <div className="p-4 border-b border-gray-200">
-                                    <h2 className="text-lg font-bold text-gray-800 mb-1">Chat History</h2>
+                            <div className="sidebar bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col shadow-2xl">
+                                <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-wwf-teal/5 to-transparent">
+                                    <h2 className="text-lg font-bold bg-gradient-to-r from-wwf-teal to-wwf-teal-dark bg-clip-text text-transparent">Chat History</h2>
                                     <p className="text-xs text-gray-500">{sessions.length} conversation{sessions.length !== 1 ? 's' : ''}</p>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -473,10 +520,10 @@
                                             <div
                                                 key={session.session_id}
                                                 onClick={() => loadSession(session.session_id)}
-                                                className={`session-item p-3 rounded-lg cursor-pointer ${
+                                                className={`session-item p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                                                     session.session_id === sessionId
-                                                        ? 'bg-wwf-orange text-white'
-                                                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                                                        ? 'bg-gradient-to-r from-wwf-orange to-orange-600 text-white shadow-lg scale-105'
+                                                        : 'bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-white text-gray-700 hover:shadow-md hover:scale-102 border border-gray-100'
                                                 }`}
                                             >
                                                 <div className="flex items-start justify-between">
@@ -529,13 +576,18 @@
                         </div>
 
                         {/* Input Area */}
-                        <form onSubmit={sendMessage} className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
+                        <form onSubmit={sendMessage} className="glass rounded-2xl shadow-2xl border border-gray-100 p-5">
                             {/* Language Selector */}
-                            <div className="flex items-center space-x-6 mb-3 pb-3 border-b border-gray-200">
-                                <span className="text-sm font-medium text-gray-600">Response Language:</span>
+                            <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-gray-200">
+                                <span className="text-sm font-semibold text-gray-700 flex items-center">
+                                    <svg className="w-4 h-4 mr-2 text-wwf-orange" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.916 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.894L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clipRule="evenodd" />
+                                    </svg>
+                                    Response Language:
+                                </span>
                                 <div className="flex space-x-4">
                                     {['English', 'French', 'German'].map(lang => (
-                                        <label key={lang} className="flex items-center space-x-2 cursor-pointer">
+                                        <label key={lang} className="flex items-center space-x-2 cursor-pointer group">
                                             <input
                                                 type="radio"
                                                 name="language"
@@ -544,7 +596,7 @@
                                                 onChange={(e) => setSelectedLanguage(e.target.value)}
                                                 className="w-4 h-4 text-wwf-orange focus:ring-wwf-orange cursor-pointer"
                                             />
-                                            <span className="text-sm text-gray-700">{lang}</span>
+                                            <span className="text-sm font-medium text-gray-700 group-hover:text-wwf-orange transition-colors">{lang}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -562,7 +614,7 @@
                                             }
                                         }}
                                         placeholder="Ask about sustainability, WWF initiatives, circular economy..."
-                                        className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-gray-700 placeholder-gray-400"
+                                        className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
                                         rows="2"
                                         disabled={isLoading}
                                     />
@@ -570,15 +622,32 @@
                                 <button
                                     type="submit"
                                     disabled={isLoading || !inputMessage.trim()}
-                                    className="bg-wwf-orange text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                                    className="bg-gradient-to-r from-wwf-orange to-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
                                 >
-                                    <span>{isLoading ? 'Sending...' : 'Send'}</span>
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                    </svg>
+                                    {isLoading ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Sending...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Send</span>
+                                            <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                            </svg>
+                                        </>
+                                    )}
                                 </button>
                             </div>
-                            <p className="text-xs text-gray-400 mt-2">Press Enter to send, Shift+Enter for new line</p>
+                            <p className="text-xs text-gray-500 mt-3 flex items-center">
+                                <svg className="w-3 h-3 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                </svg>
+                                Press Enter to send, Shift+Enter for new line
+                            </p>
                         </form>
                     </div>
                 </div>
@@ -627,12 +696,12 @@
             return (
                 <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} message-bubble`}>
                     <div className={`max-w-3xl ${isUser ? 'order-1' : 'order-2'}`}>
-                        <div className={`rounded-2xl px-5 py-4 ${
+                        <div className={`rounded-2xl px-5 py-4 shadow-lg ${
                             isUser 
-                                ? 'bg-wwf-teal text-white' 
+                                ? 'bg-gradient-to-br from-wwf-teal to-wwf-teal-dark text-white glow' 
                                 : message.isError
                                     ? 'bg-red-50 border border-red-200 text-red-800'
-                                    : 'bg-white shadow-md border border-gray-200 text-gray-800'
+                                    : 'bg-white border border-gray-100 text-gray-800 shadow-xl hover:shadow-2xl transition-shadow duration-300'
                         }`}>
                             <div className="leading-relaxed break-words overflow-wrap-anywhere" dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                             
