@@ -20,6 +20,7 @@ from typing import List, Dict, Optional
 import json
 import logging
 import csv
+import re
 from datetime import datetime
 
 # Vector store and embeddings
@@ -145,6 +146,76 @@ class MicrolearningGenerator:
             logger.error(f"Error loading category mappings: {e}")
         
         return category_to_course_id
+    
+    def _markdown_to_html(self, text: str) -> str:
+        """
+        Convert markdown formatting to HTML for Quickbase rich text fields.
+        
+        Args:
+            text: Text with markdown formatting
+            
+        Returns:
+            HTML formatted text
+        """
+        if not text:
+            return text
+        
+        # Convert **bold** to <strong>
+        html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+        
+        # Split into lines for list processing
+        lines = html.split('\n')
+        in_list = False
+        list_type = None
+        result_lines = []
+        
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            
+            # Check if line is a bullet point
+            if re.match(r'^[•\-]\s+', stripped):
+                item = re.sub(r'^[•\-]\s+', '', stripped)
+                if not in_list:
+                    result_lines.append('<ul>')
+                    in_list = True
+                    list_type = 'ul'
+                result_lines.append(f'<li>{item}</li>')
+            # Check if line is a numbered list item
+            elif re.match(r'^\d+\.\s+', stripped):
+                item = re.sub(r'^\d+\.\s+', '', stripped)
+                if not in_list:
+                    result_lines.append('<ol>')
+                    in_list = True
+                    list_type = 'ol'
+                result_lines.append(f'<li>{item}</li>')
+            else:
+                # Close list if we were in one
+                if in_list:
+                    result_lines.append(f'</{list_type}>')
+                    in_list = False
+                    list_type = None
+                
+                # Handle regular lines
+                if stripped:  # Non-empty line
+                    result_lines.append(stripped)
+                    # Add <br> after each line (except the last one)
+                    if i < len(lines) - 1:
+                        result_lines.append('<br>')
+                else:  # Empty line
+                    # Add paragraph break for empty lines
+                    result_lines.append('<br><br>')
+        
+        # Close any open list
+        if in_list:
+            result_lines.append(f'</{list_type}>')
+        
+        # Join without adding extra separators
+        html = ''.join(result_lines)
+        
+        # Clean up excessive <br> tags
+        html = re.sub(r'(<br>){3,}', '<br><br>', html)  # Max 2 consecutive breaks
+        
+        return html
     
     def retrieve_category_content(
         self,
@@ -562,12 +633,15 @@ Remember: Each microContent must be substantial, informative, and valuable for l
             chapter_title = chapter.get('chapter', '')
             
             for micro_content in chapter.get('microContents', []):
+                # Convert markdown to HTML for Quickbase rich text field
+                content_html = self._markdown_to_html(micro_content.get('microContent', ''))
+                
                 record = {
                     "12": {"value": course_id},                                    # Course ID
                     "20": {"value": micro_content.get('microContentId', '')},      # MicroContent_id
                     "8": {"value": language},                                       # Language
                     "6": {"value": chapter_title},                                  # Chapter
-                    "7": {"value": micro_content.get('microContent', '')}          # Content
+                    "7": {"value": content_html}                                   # Content (HTML)
                 }
                 records.append(record)
         
@@ -579,6 +653,78 @@ Remember: Each microContent must be substantial, informative, and valuable for l
         logger.info(f"Transformed to {len(records)} Quickbase records for table {table_id}")
         
         return payload
+
+
+def markdown_to_html(text: str) -> str:
+    """
+    Convert markdown formatting to HTML for Quickbase rich text fields.
+    Standalone function version.
+    
+    Args:
+        text: Text with markdown formatting
+        
+    Returns:
+        HTML formatted text
+    """
+    if not text:
+        return text
+    
+    # Convert **bold** to <strong>
+    html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+    
+    # Split into lines for list processing
+    lines = html.split('\n')
+    in_list = False
+    list_type = None
+    result_lines = []
+    
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        
+        # Check if line is a bullet point
+        if re.match(r'^[•\-]\s+', stripped):
+            item = re.sub(r'^[•\-]\s+', '', stripped)
+            if not in_list:
+                result_lines.append('<ul>')
+                in_list = True
+                list_type = 'ul'
+            result_lines.append(f'<li>{item}</li>')
+        # Check if line is a numbered list item
+        elif re.match(r'^\d+\.\s+', stripped):
+            item = re.sub(r'^\d+\.\s+', '', stripped)
+            if not in_list:
+                result_lines.append('<ol>')
+                in_list = True
+                list_type = 'ol'
+            result_lines.append(f'<li>{item}</li>')
+        else:
+            # Close list if we were in one
+            if in_list:
+                result_lines.append(f'</{list_type}>')
+                in_list = False
+                list_type = None
+            
+            # Handle regular lines
+            if stripped:  # Non-empty line
+                result_lines.append(stripped)
+                # Add <br> after each line (except the last one)
+                if i < len(lines) - 1:
+                    result_lines.append('<br>')
+            else:  # Empty line
+                # Add paragraph break for empty lines
+                result_lines.append('<br><br>')
+    
+    # Close any open list
+    if in_list:
+        result_lines.append(f'</{list_type}>')
+    
+    # Join without adding extra separators
+    html = ''.join(result_lines)
+    
+    # Clean up excessive <br> tags
+    html = re.sub(r'(<br>){3,}', '<br><br>', html)  # Max 2 consecutive breaks
+    
+    return html
 
 
 def transform_to_quickbase_format(
@@ -611,12 +757,15 @@ def transform_to_quickbase_format(
         chapter_title = chapter.get('chapter', '')
         
         for micro_content in chapter.get('microContents', []):
+            # Convert markdown to HTML for Quickbase rich text field
+            content_html = markdown_to_html(micro_content.get('microContent', ''))
+            
             record = {
                 "12": {"value": course_id},
                 "20": {"value": micro_content.get('microContentId', '')},
                 "8": {"value": language},
                 "6": {"value": chapter_title},
-                "7": {"value": micro_content.get('microContent', '')}
+                "7": {"value": content_html}
             }
             records.append(record)
     
