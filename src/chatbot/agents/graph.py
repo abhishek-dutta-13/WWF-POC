@@ -56,7 +56,8 @@ class ChatbotWorkflow:
     def process_message(
         self,
         query: str,
-        user_context: UserContext
+        user_context: UserContext,
+        language: str = "English"
     ) -> Dict:
         """
         Process user message through the agent workflow
@@ -64,6 +65,7 @@ class ChatbotWorkflow:
         Args:
             query: User's query
             user_context: User information
+            language: Response language (English, French, German)
         
         Returns:
             Dictionary with:
@@ -72,7 +74,7 @@ class ChatbotWorkflow:
                 - agent_used: Which agent(s) were used
                 - pdf_requested: Whether PDF export was requested
         """
-        logger.info(f"[Workflow] Processing query: {query[:50]}...")
+        logger.info(f"[Workflow] Processing query in {language}: {query[:50]}...")
         
         # Step 1: Route the query
         route = self.supervisor.route_query(query, user_context.location)
@@ -124,12 +126,13 @@ class ChatbotWorkflow:
             logger.info(f"[Workflow] Web Search Agent returned {len(web_sources)} sources")
         
         # Step 4: Generate response
-        logger.info("[Workflow] Generating response with Response Agent...")
+        logger.info(f"[Workflow] Generating response in {language} with Response Agent...")
         response = self.response_agent.generate_response(
             query=query,
             user_context=user_context,
             rag_context=rag_context,
-            web_context=web_context
+            web_context=web_context,
+            language=language
         )
         
         # Step 5: Return result

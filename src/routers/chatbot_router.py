@@ -210,7 +210,8 @@ async def send_message(
         workflow_instance = get_workflow()
         result = workflow_instance.process_message(
             query=request.message,
-            user_context=user_context
+            user_context=user_context,
+            language=request.language or "English"
         )
         
         # Handle PDF export request

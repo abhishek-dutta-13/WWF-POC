@@ -79,10 +79,15 @@ async def generate_microlearning_quickbase(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
+        # Get language from request (default to English)
+        language = request.language or "English"
+        logger.info(f"Generating content in language: {language}")
+        
         # Generate micro-learning modules using RAG
         logger.info(f"Generating micro-learning modules for category: {category}")
         modules = generator.generate_microlearning_modules(
             category=category,
+            language=language,
             top_k_chunks=20,
             max_chunks_for_llm=15
         )
@@ -200,10 +205,15 @@ async def generate_microlearning_modules_only(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
+        # Get language from request (default to English)
+        language = request.language or "English"
+        logger.info(f"Generating content in language: {language}")
+        
         # Generate micro-learning modules using RAG
         logger.info(f"Generating micro-learning modules for category: {category}")
         modules = generator.generate_microlearning_modules(
             category=category,
+            language=language,
             top_k_chunks=20,
             max_chunks_for_llm=15
         )

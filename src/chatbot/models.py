@@ -51,6 +51,7 @@ class SendMessageRequest(BaseModel):
     session_id: str
     user_id: str
     message: str
+    language: Optional[str] = "English"  # Language for response (English, French, German)
     
     @field_validator('message')
     @classmethod
@@ -60,6 +61,15 @@ class SendMessageRequest(BaseModel):
         if len(v) > 2000:
             raise ValueError('Message too long (max 2000 characters)')
         return v.strip()
+    
+    @field_validator('language')
+    @classmethod
+    def validate_language(cls, v):
+        """Validate language against supported languages."""
+        allowed_languages = ["English", "French", "German"]
+        if v not in allowed_languages:
+            raise ValueError(f"Language must be one of: {allowed_languages}")
+        return v
 
 
 class SendMessageResponse(BaseModel):

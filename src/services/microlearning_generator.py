@@ -265,6 +265,7 @@ class MicrolearningGenerator:
     def generate_microlearning_modules(
         self,
         category: str,
+        language: str = "English",
         top_k_chunks: int = 20,
         max_chunks_for_llm: int = 15
     ) -> Dict:
@@ -273,13 +274,14 @@ class MicrolearningGenerator:
         
         Args:
             category: Category name
+            language: Content language (English, French, German)
             top_k_chunks: Number of chunks to retrieve from vector store
             max_chunks_for_llm: Maximum chunks to pass to LLM (to stay within context limits)
             
         Returns:
             Dictionary with structured micro-learning content in JSON format
         """
-        logger.info(f"Generating micro-learning modules for category: {category}")
+        logger.info(f"Generating micro-learning modules for category: {category} in {language}")
         
         # Retrieve relevant content
         chunks = self.retrieve_category_content(category, top_k=top_k_chunks)
@@ -290,7 +292,7 @@ class MicrolearningGenerator:
                 "error": f"No content found for category: {category}",
                 "categoryName": category,
                 "courseId": "",
-                "language": "English",
+                "language": language,
                 "chapters": []
             }
         
@@ -307,7 +309,8 @@ class MicrolearningGenerator:
         prompt = self._create_microlearning_prompt(
             category_display,
             course_id,
-            combined_content
+            combined_content,
+            language
         )
         
         # Try each model in fallback chain
@@ -414,7 +417,8 @@ class MicrolearningGenerator:
         self,
         category_name: str,
         course_id: str,
-        content: str
+        content: str,
+        language: str = "English"
     ) -> str:
         """
         Create a detailed prompt for micro-learning module generation.
@@ -423,11 +427,22 @@ class MicrolearningGenerator:
             category_name: Human-readable category name
             course_id: Course ID
             content: Combined content chunks
+            language: Target language for content generation
             
         Returns:
             Formatted prompt string
         """
+        
+        # Language-specific instructions
+        language_instruction = f"Generate ALL content in {language}."
+        if language == "French":
+            language_instruction += " Use proper French grammar, accents, and terminology."
+        elif language == "German":
+            language_instruction += " Use proper German grammar, capitalization, and terminology."
+        
         prompt = f"""You are an expert instructional designer creating comprehensive micro-learning modules for sustainability education in an ebook format.
+
+**IMPORTANT: {language_instruction}**
 
 Based on the following WWF content about "{category_name}", create a detailed micro-learning course structure formatted like a professional ebook.
 
@@ -491,25 +506,28 @@ Return ONLY valid JSON in this exact format (no markdown, no code blocks):
 {{
   "categoryName": "{category_name}",
   "courseId": "{course_id}",
-  "language": "English",
+  "language": "{language}",
   "chapters": [
     {{
-      "chapter": "Chapter Title Here",
+      "chapter": "Chapter Title Here (in {language})",
       "microContents": [
         {{
           "microContentId": "MC-001",
-          "microContent": "A detailed 150-300 word explanation with examples, facts, and practical insights. This should be comprehensive and educational, covering the topic thoroughly with specific information from the source material..."
+          "microContent": "A detailed 150-300 word explanation with examples, facts, and practical insights (in {language}). This should be comprehensive and educational, covering the topic thoroughly with specific information from the source material..."
         }},
         {{
           "microContentId": "MC-002",
-          "microContent": "Another detailed explanation..."
+          "microContent": "Another detailed explanation (in {language})..."
         }}
       ]
     }}
   ]
 }}
 
-Remember: Each microContent must be substantial, informative, and valuable for learning. Avoid superficial or brief explanations."""
+Remember: 
+- Generate ALL text in {language}
+- Each microContent must be substantial, informative, and valuable for learning
+- Avoid superficial or brief explanations"""
 
         return prompt
     

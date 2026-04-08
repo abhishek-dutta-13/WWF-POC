@@ -76,7 +76,8 @@ Remember:
         query: str,
         user_context: UserContext,
         rag_context: str = "",
-        web_context: str = ""
+        web_context: str = "",
+        language: str = "English"
     ) -> str:
         """
         Generate personalized response using available context
@@ -86,10 +87,14 @@ Remember:
             user_context: User information (name, location, education)
             rag_context: Context from RAG agent
             web_context: Context from web search agent
+            language: Response language (English, French, German)
         
         Returns:
             Generated response text
         """
+        # Build language-aware system prompt
+        system_prompt = self._get_system_prompt(language)
+        
         # Build user-specific prompt
         user_prompt = self._build_prompt(
             query=query,
@@ -98,7 +103,7 @@ Remember:
             web_context=web_context
         )
         
-        logger.info(f"[Response Agent] Generating response for: {query[:50]}...")
+        logger.info(f"[Response Agent] Generating response in {language} for: {query[:50]}...")
         logger.debug(f"[Response Agent] User: {user_context.name} from {user_context.location}")
         
         # Try each model in fallback chain
@@ -110,7 +115,7 @@ Remember:
                 response = self.groq_client.chat.completions.create(
                     model=model,
                     messages=[
-                        {"role": "system", "content": self.SYSTEM_PROMPT},
+                        {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
                     temperature=self.temperature,
@@ -142,6 +147,26 @@ Remember:
                 # Otherwise, continue to next model
                 logger.info(f"[Response Agent] Trying next model in fallback chain...")
                 continue
+    
+    def _get_system_prompt(self, language: str) -> str:
+        """
+        Get language-aware system prompt
+        
+        Args:
+            language: Target response language
+            
+        Returns:
+            System prompt with language instruction
+        """
+        language_instruction = ""
+        if language == "French":
+            language_instruction = "\n\n**CRITICAL: Respond ONLY in French. Use proper French grammar, accents, and terminology.**"
+        elif language == "German":
+            language_instruction = "\n\n**CRITICAL: Respond ONLY in German. Use proper German grammar, capitalization, and terminology.**"
+        elif language == "English":
+            language_instruction = ""  # Default, no special instruction
+        
+        return self.SYSTEM_PROMPT + language_instruction
     
     def _build_prompt(
         self,

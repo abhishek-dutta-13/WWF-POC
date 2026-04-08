@@ -26,6 +26,11 @@ class MCQRequest(BaseModel):
         description="Course ID (001, 002, 003)",
         example="001"
     )
+    language: Optional[str] = Field(
+        "English",
+        description="Content language (English, French, German)",
+        example="English"
+    )
     
     @validator('CourseID')
     def validate_course_id(cls, v):
@@ -35,6 +40,14 @@ class MCQRequest(BaseModel):
             return v
         if v not in COURSE_ID_TO_CATEGORY:
             raise ValueError(f"CourseID must be one of: {list(COURSE_ID_TO_CATEGORY.keys())}")
+        return v
+    
+    @validator('language')
+    def validate_language(cls, v):
+        """Validate language against supported languages."""
+        allowed_languages = ["English", "French", "German"]
+        if v not in allowed_languages:
+            raise ValueError(f"Language must be one of: {allowed_languages}")
         return v
 
 
