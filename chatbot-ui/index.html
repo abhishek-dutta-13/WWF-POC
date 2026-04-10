@@ -38,25 +38,90 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        body {
-            font-family: 'Inter', sans-serif;
+        * {
+            box-sizing: border-box;
         }
         
-        .chat-container {
-            height: calc(100vh - 80px);
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+       .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         
         .messages-container {
-            height: calc(100% - 120px);
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 1rem;
         }
         
         .sidebar {
-            width: 280px;
-            transition: transform 0.3s ease;
+            min-width: 250px;
+            max-width: 500px;
+            width: 320px;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         
         .sidebar-hidden {
             transform: translateX(-100%);
+            min-width: 0;
+            width: 0;
+        }
+        
+        /* Resizer handle */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        
+        .resize-handle:hover {
+            background: rgba(0, 96, 114, 0.3);
+        }
+        
+        .resize-handle.resizing {
+            background: rgba(0, 96, 114, 0.5);
+        }
+        
+        /* Sidebar scrolling */
+        .sidebar-sessions {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .sidebar-sessions::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar-sessions::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .sidebar-sessions::-webkit-scrollbar-thumb {
+            background: rgba(0, 96, 114, 0.3);
+            border-radius: 3px;
+        }
+        
+        .sidebar-sessions::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 96, 114, 0.5);
         }
         
         .session-item {
@@ -175,6 +240,34 @@
         /* Scale utilities */
         .scale-102 {
             transform: scale(1.02);
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 40;
+                width: 280px !important;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+            
+            .main-content {
+                width: 100% !important;
+            }
+            
+            .resize-handle {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .sidebar {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -453,49 +546,49 @@
             }
 
             return (
-                <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-white to-orange-50">
+                <div className="flex flex-col h-screen bg-gray-50">
                     {/* Header */}
-                    <header className="bg-wwf-teal shadow-xl relative overflow-hidden">
+                    <header className="bg-gradient-to-r from-wwf-teal via-wwf-teal-dark to-wwf-teal shadow-lg relative overflow-hidden flex-shrink-0">
                         {/* Decorative gradient overlay */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-                        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between relative z-10">
-                            <div className="flex items-center space-x-3 slide-in">
+                        <div className="px-3 sm:px-6 py-3 flex items-center justify-between relative z-10">
+                            <div className="flex items-center space-x-2 sm:space-x-4 slide-in flex-1">
                                 <button
                                     onClick={() => setShowSidebar(!showSidebar)}
-                                    className="p-2 hover:bg-wwf-teal-dark rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-lg"
+                                    className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-105"
                                     title="Toggle sidebar"
                                 >
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                     </svg>
                                 </button>
-                                <img src="wwf-logo-new.jpg" alt="WWF Logo" style={{height: '60px', width: 'auto'}} />
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white">WWF Sustainability Assistant</h1>
-                                    <p className="text-sm text-gray-100">Powered by AI • Real-time Knowledge</p>
+                                <img src="wwf-logo-new.jpg" alt="WWF Logo" className="h-10 sm:h-12 w-auto" />
+                                <div className="hidden sm:block">
+                                    <h1 className="text-lg sm:text-xl font-bold text-white">WWF Sustainability Assistant</h1>
+                                    <p className="text-xs text-white/90">Powered by AI • Real-time Knowledge</p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <div className="text-right">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
+                                <div className="hidden md:block text-right">
                                     <p className="text-sm font-medium text-white">{userContext?.name}</p>
-                                    <p className="text-xs text-gray-200">{userContext?.location}</p>
+                                    <p className="text-xs text-white/80">{userContext?.location}</p>
                                 </div>
                                 <button
                                     onClick={createNewChat}
-                                    className="bg-gradient-to-r from-wwf-teal to-wwf-teal-dark text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center space-x-2"
+                                    className="bg-white/20 hover:bg-white/30 text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center space-x-1 sm:space-x-2"
                                     title="Start new chat"
                                 >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
-                                    <span className="text-sm font-medium">New Chat</span>
+                                    <span className="text-xs sm:text-sm font-medium hidden sm:inline">New Chat</span>
                                 </button>
                                 <button
                                     onClick={closeChat}
-                                    className="p-2 hover:bg-red-500 rounded-lg transition-all duration-200 text-white hover:text-white hover:scale-110 hover:shadow-lg"
+                                    className="p-2 hover:bg-red-500/80 rounded-lg transition-all duration-200 text-white hover:scale-105"
                                     title="Close chat"
                                 >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -507,12 +600,38 @@
                     <div className="flex flex-1 overflow-hidden">
                         {/* Sidebar - Chat History */}
                         {showSidebar && (
-                            <div className="sidebar bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col shadow-2xl">
-                                <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-wwf-teal/5 to-transparent">
-                                    <h2 className="text-lg font-bold bg-gradient-to-r from-wwf-teal to-wwf-teal-dark bg-clip-text text-transparent">Chat History</h2>
-                                    <p className="text-xs text-gray-500">{sessions.length} conversation{sessions.length !== 1 ? 's' : ''}</p>
+                            <div className="sidebar bg-white border-r border-gray-200 shadow-lg">
+                                {/* Resize handle */}
+                                <div 
+                                    className="resize-handle"
+                                    onMouseDown={(e) => {
+                                        const sidebar = e.currentTarget.parentElement;
+                                        const startX = e.clientX;
+                                        const startWidth = sidebar.offsetWidth;
+                                        e.currentTarget.classList.add('resizing');
+                                        
+                                        const doDrag = (e) => {
+                                            const newWidth = startWidth + (e.clientX - startX);
+                                            if (newWidth >= 250 && newWidth <= 500) {
+                                                sidebar.style.width = newWidth + 'px';
+                                            }
+                                        };
+                                        
+                                        const stopDrag = () => {
+                                            e.currentTarget.classList.remove('resizing');
+                                            document.removeEventListener('mousemove', doDrag);
+                                            document.removeEventListener('mouseup', stopDrag);
+                                        };
+                                        
+                                        document.addEventListener('mousemove', doDrag);
+                                        document.addEventListener('mouseup', stopDrag);
+                                    }}
+                                />
+                                <div className="p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-wwf-teal/10 to-transparent flex-shrink-0">
+                                    <h2 className="text-base sm:text-lg font-bold text-wwf-teal">Chat History</h2>
+                                    <p className="text-xs text-gray-600">{sessions.length} conversation{sessions.length !== 1 ? 's' : ''}</p>
                                 </div>
-                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                <div className="sidebar-sessions p-2 sm:p-3 space-y-2">
                                     {sessions.length === 0 ? (
                                         <p className="text-sm text-gray-400 text-center py-8">No chat history yet</p>
                                     ) : (
@@ -563,9 +682,10 @@
                         )}
 
                         {/* Chat Container */}
-                        <div className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 chat-container">
+                        <div className="flex-1 flex flex-col overflow-hidden main-content">
+                            <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 chat-container">
                         {/* Messages Area */}
-                        <div className="messages-container overflow-y-auto space-y-4 mb-4 px-2">
+                        <div className="messages-container space-y-3 sm:space-y-4 px-1 sm:px-2">
                             {messages.map((msg, idx) => (
                                 <Message key={idx} message={msg} />
                             ))}
@@ -576,16 +696,17 @@
                         </div>
 
                         {/* Input Area */}
-                        <form onSubmit={sendMessage} className="glass rounded-2xl shadow-2xl border border-gray-100 p-5">
+                        <div className="flex-shrink-0 pt-3">
+                        <form onSubmit={sendMessage} className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-3 sm:p-5">
                             {/* Language Selector */}
-                            <div className="flex items-center space-x-6 mb-4 pb-4 border-b border-gray-200">
-                                <span className="text-sm font-semibold text-gray-700 flex items-center">
-                                    <svg className="w-4 h-4 mr-2 text-wwf-orange" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-200">
+                                <span className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center">
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-wwf-orange" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.724 4.78c.29.354.596.696.916 1.026a1 1 0 11-1.44 1.389c-.188-.196-.373-.396-.554-.6a19.098 19.098 0 01-3.107 3.567 1 1 0 01-1.334-1.49 17.087 17.087 0 003.13-3.733 18.992 18.992 0 01-1.487-2.494 1 1 0 111.79-.89c.234.47.489.928.764 1.372.417-.934.752-1.913.997-2.927H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.991 5.982a.869.869 0 01.02.037l.99 1.98a1 1 0 11-1.79.894L15.383 16h-4.764l-.724 1.447a1 1 0 11-1.788-.894l.99-1.98.019-.038 2.99-5.982A1 1 0 0113 8zm-1.382 6h2.764L13 11.236 11.618 14z" clipRule="evenodd" />
                                     </svg>
-                                    Response Language:
+                                    Language:
                                 </span>
-                                <div className="flex space-x-4">
+                                <div className="flex flex-wrap gap-2 sm:gap-4">
                                     {['English', 'French', 'German'].map(lang => (
                                         <label key={lang} className="flex items-center space-x-2 cursor-pointer group">
                                             <input
@@ -602,7 +723,7 @@
                                 </div>
                             </div>
                             
-                            <div className="flex items-end space-x-3">
+                            <div className="flex items-end space-x-2 sm:space-x-3">
                                 <div className="flex-1">
                                     <textarea
                                         value={inputMessage}
@@ -613,8 +734,8 @@
                                                 sendMessage(e);
                                             }
                                         }}
-                                        placeholder="Ask about sustainability, WWF initiatives, circular economy..."
-                                        className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+                                        placeholder="Ask about sustainability..."
+                                        className="w-full resize-none border-0 focus:ring-0 focus:outline-none text-sm sm:text-base text-gray-700 placeholder-gray-400 bg-transparent"
                                         rows="2"
                                         disabled={isLoading}
                                     />
@@ -622,36 +743,38 @@
                                 <button
                                     type="submit"
                                     disabled={isLoading || !inputMessage.trim()}
-                                    className="bg-gradient-to-r from-wwf-orange to-orange-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2"
+                                    className="bg-gradient-to-r from-wwf-orange to-orange-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-1 sm:space-x-2"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span>Sending...</span>
+                                            <span className="hidden sm:inline text-sm">Sending...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Send</span>
-                                            <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span className="text-sm">Send</span>
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                             </svg>
                                         </>
                                     )}
                                 </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-3 flex items-center">
+                            <p className="text-xs text-gray-500 mt-2 sm:mt-3 flex items-center">
                                 <svg className="w-3 h-3 mr-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                 </svg>
                                 Press Enter to send, Shift+Enter for new line
                             </p>
                         </form>
+                        </div>
+                    </div>
+                        </div>
                     </div>
                 </div>
-            </div>
             );
         }
 
