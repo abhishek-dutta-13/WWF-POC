@@ -605,26 +605,31 @@
                                 <div 
                                     className="resize-handle"
                                     onMouseDown={(e) => {
-                                        const sidebar = e.currentTarget.parentElement;
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        
+                                        const handle = e.currentTarget;
+                                        const sidebar = handle.parentElement;
                                         const startX = e.clientX;
                                         const startWidth = sidebar.offsetWidth;
-                                        e.currentTarget.classList.add('resizing');
                                         
-                                        const doDrag = (e) => {
-                                            const newWidth = startWidth + (e.clientX - startX);
+                                        handle.classList.add('resizing');
+                                        
+                                        const doDrag = (dragEvent) => {
+                                            const newWidth = startWidth + (dragEvent.clientX - startX);
                                             if (newWidth >= 250 && newWidth <= 500) {
                                                 sidebar.style.width = newWidth + 'px';
                                             }
                                         };
                                         
                                         const stopDrag = () => {
-                                            e.currentTarget.classList.remove('resizing');
-                                            document.removeEventListener('mousemove', doDrag);
-                                            document.removeEventListener('mouseup', stopDrag);
+                                            handle.classList.remove('resizing');
+                                            document.removeEventListener('mousemove', doDrag, false);
+                                            document.removeEventListener('mouseup', stopDrag, false);
                                         };
                                         
-                                        document.addEventListener('mousemove', doDrag);
-                                        document.addEventListener('mouseup', stopDrag);
+                                        document.addEventListener('mousemove', doDrag, false);
+                                        document.addEventListener('mouseup', stopDrag, false);
                                     }}
                                 />
                                 <div className="p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-wwf-teal/10 to-transparent flex-shrink-0">
