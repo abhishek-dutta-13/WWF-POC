@@ -47,7 +47,7 @@ class SupervisorAgent:
         self,
         query: str,
         user_location: str = ""
-    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting']:
+    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query']:
         """
         Analyze query and determine routing
         
@@ -56,7 +56,7 @@ class SupervisorAgent:
             user_location: User's location (helps determine if location-specific)
         
         Returns:
-            Agent route: 'rag', 'web_search', 'hybrid', 'pdf_export', or 'greeting'
+            Agent route: 'rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', or 'invalid_query'
         """
         query_lower = query.lower().strip()
         
@@ -65,18 +65,23 @@ class SupervisorAgent:
             logger.info("[Supervisor] Routing to: GREETING")
             return 'greeting'
         
-        # 2. Check for PDF export request
+        # 2. Validate query quality (prevent wasteful searches for nonsense)
+        if self._is_invalid_query(query_lower):
+            logger.info("[Supervisor] Routing to: INVALID_QUERY (query too short or nonsensical)")
+            return 'invalid_query'
+        
+        # 3. Check for PDF export request
         if self._is_pdf_export_request(query_lower):
             logger.info("[Supervisor] Routing to: PDF_EXPORT")
             return 'pdf_export'
         
-        # 3. Check for web search indicators
+        # 4. Check for web search indicators
         needs_web = self._needs_web_search(query_lower)
         
-        # 4. Check for RAG indicators
+        # 5. Check for RAG indicators
         needs_rag = self._needs_rag(query_lower)
         
-        # 5. Decide routing
+        # 6. Decide routing
         if needs_web and needs_rag:
             logger.info("[Supervisor] Routing to: HYBRID (both RAG + Web Search)")
             return 'hybrid'
@@ -117,6 +122,59 @@ class SupervisorAgent:
         greeting_starters = ['hi', 'hello', 'hey', 'greetings']
         words = query_lower.split()
         if len(words) <= 3 and any(query_lower.startswith(starter) for starter in greeting_starters):
+            return True
+        
+        return False
+    
+    def _is_invalid_query(self, query_lower: str) -> bool:
+        """
+        Detect if query is too short, nonsensical, or incomplete
+        
+        Args:
+            query_lower: Lowercased query string
+        
+        Returns:
+            True if query is invalid/nonsensical
+        """
+        # Remove extra spaces and get clean query
+        clean_query = ' '.join(query_lower.split())
+        
+        # Check 1: Too short (1-2 characters) and not a known valid short query
+        if len(clean_query) <= 2:
+            # Allow some valid 1-2 char queries (unlikely but possible)
+            valid_short_queries = ['ok', 'no']
+            if clean_query not in valid_short_queries:
+                return True
+        
+        # Check 2: Only contains numbers (like "123" or "456")
+        if clean_query.replace(' ', '').isdigit():
+            return True
+        
+        # Check 3: Only special characters or repeated single characters
+        # Remove spaces and check if it's all the same character
+        no_space = clean_query.replace(' ', '')
+        if len(set(no_space)) == 1 and not no_space.isalpha():
+            return True
+        
+        # Check 4: Random character sequences (very few vowels, likely gibberish)
+        # This is a heuristic - if query is longer than 4 chars but has less than 20% vowels
+        if len(clean_query) > 4:
+            vowels = 'aeiou'
+            letter_count = sum(1 for c in clean_query if c.isalpha())
+            if letter_count > 0:
+                vowel_count = sum(1 for c in clean_query if c in vowels)
+                vowel_ratio = vowel_count / letter_count
+                # If less than 15% vowels in words > 4 chars, likely gibberish
+                if vowel_ratio < 0.15:
+                    return True
+        
+        # Check 5: Too short and has no clear meaning (< 3 words, < 10 chars total)
+        words = clean_query.split()
+        if len(clean_query) < 10 and len(words) < 2:
+            # Exception: If it's a single meaningful word (e.g., "sustainability"), allow it
+            # We'll allow single words of 5+ characters
+            if len(words) == 1 and len(words[0]) >= 5:
+                return False
             return True
         
         return False
@@ -211,6 +269,7 @@ class SupervisorAgent:
         """
         explanations = {
             'greeting': "Hello! How can I help you today?",
+            'invalid_query': "I need more information to help you. Could you please provide a more detailed question?",
             'rag': "I'll search our WWF knowledge base for this information.",
             'web_search': "I'll search the web for current information on this topic.",
             'hybrid': "I'll combine information from our WWF knowledge base and current web sources.",

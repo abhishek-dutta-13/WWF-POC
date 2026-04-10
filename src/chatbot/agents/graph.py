@@ -98,6 +98,23 @@ class ChatbotWorkflow:
                 'pdf_requested': False
             }
         
+        # Step 2b: Handle invalid/nonsensical queries
+        if route == 'invalid_query':
+            invalid_responses = {
+                'English': f"I'm sorry, but I need a bit more information to help you properly. Could you please ask a complete question about sustainability, conservation, or WWF topics?\n\nFor example:\n• What is circular economy?\n• How can I reduce waste?\n• Tell me about WWF's conservation efforts",
+                'French': f"Désolé, mais j'ai besoin d'un peu plus d'informations pour vous aider correctement. Pourriez-vous poser une question complète sur la durabilité, la conservation ou les sujets liés au WWF?",
+                'German': f"Entschuldigung, aber ich benötige etwas mehr Informationen, um Ihnen richtig helfen zu können. Könnten Sie bitte eine vollständige Frage zu Nachhaltigkeit, Naturschutz oder WWF-Themen stellen?"
+            }
+            
+            response = invalid_responses.get(language, invalid_responses['English'])
+            
+            return {
+                'response': response,
+                'sources': [],
+                'agent_used': 'invalid_query',
+                'pdf_requested': False
+            }
+        
         # Step 3: Check for PDF export request
         if route == 'pdf_export':
             return {

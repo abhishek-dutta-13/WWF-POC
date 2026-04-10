@@ -77,7 +77,7 @@ class SendMessageResponse(BaseModel):
     message_id: str
     response: str
     sources: List[Source] = []
-    agent_used: Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting']
+    agent_used: Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query']
     timestamp: str
     pdf_url: Optional[str] = None  # Only present if PDF was generated
 
@@ -87,7 +87,7 @@ class ChatMessageDTO(BaseModel):
     role: Literal['user', 'assistant']
     content: str
     sources: Optional[List[Source]] = None
-    agent_used: Optional[Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting']] = None
+    agent_used: Optional[Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query']] = None
     pdf_url: Optional[str] = None
     timestamp: str
 
@@ -127,7 +127,7 @@ class AgentState(BaseModel):
     user_context: UserContext
     rag_context: Optional[str] = None
     web_context: Optional[str] = None
-    agent_route: Optional[Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting']] = None
+    agent_route: Optional[Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query']] = None
     response: Optional[str] = None
     sources: List[Source] = []
     pdf_requested: bool = False
