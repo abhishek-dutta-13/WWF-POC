@@ -80,7 +80,25 @@ class ChatbotWorkflow:
         route = self.supervisor.route_query(query, user_context.location)
         logger.info(f"[Workflow] Supervisor routed to: {route.upper()}")
         
-        # Step 2: Check for PDF export request
+        # Step 2: Handle simple greetings without RAG/web search
+        if route == 'greeting':
+            # Generate a simple, friendly greeting response
+            greeting_responses = {
+                'English': f"Hello {user_context.name}! 👋 How can I help you today? Feel free to ask me about sustainability, conservation, circular economy, or any WWF-related topics.",
+                'French': f"Bonjour {user_context.name}! 👋 Comment puis-je vous aider aujourd'hui? N'hésitez pas à me poser des questions sur la durabilité, la conservation, l'économie circulaire ou tout sujet lié au WWF.",
+                'German': f"Hallo {user_context.name}! 👋 Wie kann ich Ihnen heute helfen? Fragen Sie mich gerne zu Nachhaltigkeit, Naturschutz, Kreislaufwirtschaft oder WWF-Themen."
+            }
+            
+            response = greeting_responses.get(language, greeting_responses['English'])
+            
+            return {
+                'response': response,
+                'sources': [],
+                'agent_used': 'greeting',
+                'pdf_requested': False
+            }
+        
+        # Step 3: Check for PDF export request
         if route == 'pdf_export':
             return {
                 'response': "I'll prepare a PDF export of our conversation for you.",
@@ -89,7 +107,7 @@ class ChatbotWorkflow:
                 'pdf_requested': True
             }
         
-        # Step 3: Gather context based on routing
+        # Step 4: Gather context based on routing
         rag_context = ""
         web_context = ""
         sources = []
@@ -125,7 +143,7 @@ class ChatbotWorkflow:
             sources.extend(web_sources)
             logger.info(f"[Workflow] Web Search Agent returned {len(web_sources)} sources")
         
-        # Step 4: Generate response
+        # Step 5: Generate response
         logger.info(f"[Workflow] Generating response in {language} with Response Agent...")
         response = self.response_agent.generate_response(
             query=query,
@@ -135,7 +153,7 @@ class ChatbotWorkflow:
             language=language
         )
         
-        # Step 5: Return result
+        # Step 6: Return result
         result = {
             'response': response,
             'sources': sources,

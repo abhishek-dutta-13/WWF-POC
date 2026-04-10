@@ -47,7 +47,7 @@ class SupervisorAgent:
         self,
         query: str,
         user_location: str = ""
-    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export']:
+    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting']:
         """
         Analyze query and determine routing
         
@@ -56,22 +56,27 @@ class SupervisorAgent:
             user_location: User's location (helps determine if location-specific)
         
         Returns:
-            Agent route: 'rag', 'web_search', 'hybrid', or 'pdf_export'
+            Agent route: 'rag', 'web_search', 'hybrid', 'pdf_export', or 'greeting'
         """
-        query_lower = query.lower()
+        query_lower = query.lower().strip()
         
-        # 1. Check for PDF export request (highest priority)
+        # 1. Check for simple greetings (highest priority - avoid unnecessary processing)
+        if self._is_greeting(query_lower):
+            logger.info("[Supervisor] Routing to: GREETING")
+            return 'greeting'
+        
+        # 2. Check for PDF export request
         if self._is_pdf_export_request(query_lower):
             logger.info("[Supervisor] Routing to: PDF_EXPORT")
             return 'pdf_export'
         
-        # 2. Check for web search indicators
+        # 3. Check for web search indicators
         needs_web = self._needs_web_search(query_lower)
         
-        # 3. Check for RAG indicators
+        # 4. Check for RAG indicators
         needs_rag = self._needs_rag(query_lower)
         
-        # 4. Decide routing
+        # 5. Decide routing
         if needs_web and needs_rag:
             logger.info("[Supervisor] Routing to: HYBRID (both RAG + Web Search)")
             return 'hybrid'
@@ -86,6 +91,35 @@ class SupervisorAgent:
             # If no clear match, default to web search for broader coverage
             logger.info("[Supervisor] Routing to: WEB_SEARCH (no RAG topic match, using web for broader coverage)")
             return 'web_search'
+    
+    def _is_greeting(self, query_lower: str) -> bool:
+        """
+        Detect if query is a simple greeting
+        
+        Args:
+            query_lower: Lowercased query string
+        
+        Returns:
+            True if greeting detected
+        """
+        # Simple greetings - single word or very short phrases
+        simple_greetings = [
+            'hi', 'hello', 'hey', 'greetings', 'good morning',
+            'good afternoon', 'good evening', 'howdy', 'hiya',
+            'yo', 'sup', "what's up", 'whats up'
+        ]
+        
+        # Check if query is exactly a greeting or starts with greeting
+        if query_lower in simple_greetings:
+            return True
+        
+        # Check if query starts with greeting word (e.g., "hi there", "hello!")
+        greeting_starters = ['hi', 'hello', 'hey', 'greetings']
+        words = query_lower.split()
+        if len(words) <= 3 and any(query_lower.startswith(starter) for starter in greeting_starters):
+            return True
+        
+        return False
     
     def _is_pdf_export_request(self, query_lower: str) -> bool:
         """
@@ -176,6 +210,7 @@ class SupervisorAgent:
             Explanation string
         """
         explanations = {
+            'greeting': "Hello! How can I help you today?",
             'rag': "I'll search our WWF knowledge base for this information.",
             'web_search': "I'll search the web for current information on this topic.",
             'hybrid': "I'll combine information from our WWF knowledge base and current web sources.",
