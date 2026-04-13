@@ -242,6 +242,36 @@
             transform: scale(1.02);
         }
         
+        /* Backdrop overlay for mobile sidebar */
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 30;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        /* Ensure proper mobile scrolling */
+        @media (max-width: 768px) {
+            body {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+            
+            /* Better touch targets on mobile */
+            button, a {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Prevent zoom on input focus */
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+        
         /* Mobile responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -250,8 +280,15 @@
                 top: 0;
                 bottom: 0;
                 z-index: 40;
-                width: 280px !important;
-                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                width: 85% !important;
+                max-width: 320px !important;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+                transform: translateX(0);
+                transition: transform 0.3s ease-out;
+            }
+            
+            .sidebar-hidden {
+                transform: translateX(-100%);
             }
             
             .main-content {
@@ -293,7 +330,9 @@
             const [isLoading, setIsLoading] = useState(false);
             const [isInitializing, setIsInitializing] = useState(true);
             const [error, setError] = useState(null);
-            const [showSidebar, setShowSidebar] = useState(true);
+            // Hide sidebar by default on mobile
+            const [showSidebar, setShowSidebar] = useState(window.innerWidth >= 768);
+            const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
             const messagesEndRef = useRef(null);
 
             // Auto-scroll to bottom
@@ -304,6 +343,22 @@
             useEffect(() => {
                 scrollToBottom();
             }, [messages]);
+
+            // Handle window resize for sidebar visibility
+            useEffect(() => {
+                const handleResize = () => {
+                    const mobile = window.innerWidth < 768;
+                    setIsMobile(mobile);
+                    if (window.innerWidth >= 768) {
+                        setShowSidebar(true);
+                    } else {
+                        setShowSidebar(false);
+                    }
+                };
+                
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
 
             // Fetch user sessions
             const fetchSessions = async (userId) => {
@@ -329,6 +384,11 @@
                     const data = await response.json();
                     setSessionId(sessionIdToLoad);
                     setMessages(data.messages || []);
+                    
+                    // Close sidebar on mobile after loading session
+                    if (window.innerWidth < 768) {
+                        setShowSidebar(false);
+                    }
                 } catch (err) {
                     console.error('Load session error:', err);
                     setError('Failed to load session history');
@@ -362,6 +422,11 @@
 
                     // Refresh sessions list
                     await fetchSessions(userContext.user_id);
+                    
+                    // Close sidebar on mobile after creating new chat
+                    if (window.innerWidth < 768) {
+                        setShowSidebar(false);
+                    }
                 } catch (err) {
                     console.error('Create new chat error:', err);
                     setError('Failed to create new chat session');
@@ -598,6 +663,14 @@
 
                     {/* Main Content with Sidebar */}
                     <div className="flex flex-1 overflow-hidden">
+                        {/* Mobile backdrop overlay */}
+                        {showSidebar && isMobile && (
+                            <div 
+                                className="sidebar-backdrop"
+                                onClick={() => setShowSidebar(false)}
+                            />
+                        )}
+                        
                         {/* Sidebar - Chat History */}
                         {showSidebar && (
                             <div className="sidebar bg-white border-r border-gray-200 shadow-lg">
