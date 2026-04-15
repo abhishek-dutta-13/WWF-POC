@@ -1,4 +1,4 @@
 # guardrails package
-from .llm_guard import LLMGuard, get_llm_guard
+from .openai_moderator import OpenAIModerator, get_moderator
 
-__all__ = ["LLMGuard", "get_llm_guard"]
+__all__ = ["OpenAIModerator", "get_moderator"]

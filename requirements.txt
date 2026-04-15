@@ -34,9 +34,8 @@ psycopg2-binary>=2.9.9  # PostgreSQL driver
 # PDF Generation (for chat export)
 reportlab>=4.0.0
 
-# LLM Guard - content safety, prompt injection, toxicity, bias protection
-# https://github.com/protectai/llm-guard
-llm-guard>=0.3.0
+# Content Safety - OpenAI Moderation API (free, fast, no local model downloads)
+# Uses existing OPENAI_API_KEY — no extra setup needed
 
 # Optional: For enhanced logging
 python-multipart>=0.0.6

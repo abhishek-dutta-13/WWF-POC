@@ -22,7 +22,7 @@ from chatbot.models import (
 from chatbot.database import get_db, User, ChatSession, ChatMessage
 from chatbot.agents.graph import ChatbotWorkflow
 from chatbot.pdf_generator import ChatPDFGenerator
-from guardrails.llm_guard import get_llm_guard
+from guardrails.openai_moderator import get_moderator
 
 logger = logging.getLogger(__name__)
 
@@ -207,11 +207,11 @@ async def send_message(
         db.add(user_message)
         db.commit()
         
-        # Scan input with LLM Guard before processing
-        guard = get_llm_guard()
-        sanitized_message, input_safe, input_reason = guard.scan_input(request.message)
+        # Scan input with OpenAI Moderation before processing
+        moderator = get_moderator()
+        input_safe, input_reason = moderator.scan_input(request.message)
         if not input_safe:
-            logger.warning(f"[LLM Guard] Blocked input for session {request.session_id}: {input_reason}")
+            logger.warning(f"[Moderator] Blocked input for session {request.session_id}: {input_reason}")
             return SendMessageResponse(
                 message_id=str(uuid.uuid4()),
                 response=(
@@ -225,24 +225,23 @@ async def send_message(
                 pdf_url=None
             )
 
-        # Process through workflow (use sanitized message)
+        # Process through workflow
         workflow_instance = get_workflow()
         result = workflow_instance.process_message(
-            query=sanitized_message,
+            query=request.message,
             user_context=user_context,
             language=request.language or "English"
         )
-        
-        # Scan output with LLM Guard before returning
+
+        # Scan output with OpenAI Moderation before returning
         if result['agent_used'] not in ('blocked', 'greeting', 'invalid_query', 'off_topic', 'pdf_export'):
-            sanitized_response, output_safe, output_reason = guard.scan_output(
-                sanitized_message, result['response']
-            )
+            output_safe, output_reason = moderator.scan_output(result['response'])
             if not output_safe:
-                logger.warning(f"[LLM Guard] Output flagged for session {request.session_id}: {output_reason}")
-                result['response'] = sanitized_response  # use sanitized version
-            else:
-                result['response'] = sanitized_response
+                logger.warning(f"[Moderator] Output flagged for session {request.session_id}: {output_reason}")
+                result['response'] = (
+                    "⚠️ The generated response was flagged by our content safety system. "
+                    "Please try rephrasing your question."
+                )
 
         # Handle PDF export request
         pdf_url = None

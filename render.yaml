@@ -6,7 +6,7 @@ services:
     name: mcq-generator-api
     runtime: python
     plan: free  # Free tier 
-    buildCommand: pip install -r requirements.txt && cd src && python warmup_guards.py
+    buildCommand: pip install -r requirements.txt
     startCommand: cd src && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GROQ_API_KEY
@@ -17,9 +17,5 @@ services:
         value: "*"  # Update with your Quickbase domain in Render dashboard
       - key: PYTHON_VERSION
         value: "3.11.0"
-      - key: HF_HOME
-        value: "/opt/render/project/src/.hf_cache"
-      - key: TRANSFORMERS_CACHE
-        value: "/opt/render/project/src/.hf_cache"
     healthCheckPath: /health
     autoDeploy: true  # Auto-deploy on git push
