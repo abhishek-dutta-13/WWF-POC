@@ -66,7 +66,7 @@ class WebSearchAgent:
         # Enhance query with location if provided
         enhanced_query = query
         if user_location:
-            enhanced_query = f"{query} {user_location}"
+            enhanced_query = f"{query} in {user_location}"
         
         logger.info(f"[Web Search Agent] Searching for: {enhanced_query}")
         

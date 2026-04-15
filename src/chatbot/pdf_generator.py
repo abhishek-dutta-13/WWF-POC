@@ -2,11 +2,12 @@
 """
 PDF Export Generator - Creates PDF exports of chat conversations
 """
+import re
 import os
 import logging
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -98,6 +99,30 @@ class ChatPDFGenerator:
             spaceAfter=12,
             fontName='Helvetica-Oblique'
         ))
+
+        # Bullet item style
+        self.styles.add(ParagraphStyle(
+            name='BulletItem',
+            parent=self.styles['Normal'],
+            fontSize=11,
+            textColor=self.ASSISTANT_COLOR,
+            leftIndent=35,
+            firstLineIndent=0,
+            spaceAfter=3,
+            bulletIndent=20,
+        ))
+
+        # Section header style (for ### / ## headings inside responses)
+        self.styles.add(ParagraphStyle(
+            name='ResponseHeader',
+            parent=self.styles['Normal'],
+            fontSize=12,
+            textColor=self.WWF_ORANGE,
+            fontName='Helvetica-Bold',
+            spaceBefore=8,
+            spaceAfter=4,
+            leftIndent=20,
+        ))
     
     def generate_pdf(
         self,
@@ -171,32 +196,41 @@ class ChatPDFGenerator:
                 try:
                     msg_time = datetime.fromisoformat(msg['timestamp'])
                     time_str = msg_time.strftime('%I:%M %p')
-                except:
+                except Exception:
                     time_str = "N/A"
                 
-                # Escape HTML special characters in content
-                content = self._escape_html(msg['content'])
-                
                 if msg['role'] == 'user':
-                    # User message
-                    text = f"<b>You ({time_str}):</b><br/>{content}"
+                    # User message (single paragraph)
+                    text = f"<b>You ({time_str}):</b><br/>{self._escape_xml(msg['content'])}"
                     story.append(Paragraph(text, self.styles['UserMessage']))
                 else:
-                    # Assistant message
-                    text = f"<b>WWF Assistant ({time_str}):</b><br/>{content}"
-                    story.append(Paragraph(text, self.styles['AssistantMessage']))
-                    
+                    # Assistant message — render with markdown formatting
+                    header_text = f"<b>WWF Assistant ({time_str}):</b>"
+                    story.append(Paragraph(header_text, self.styles['AssistantMessage']))
+
+                    # Convert markdown content into structured paragraphs
+                    content_blocks = self._markdown_to_reportlab_blocks(msg['content'])
+                    for block_text, block_style in content_blocks:
+                        try:
+                            story.append(Paragraph(block_text, self.styles[block_style]))
+                        except Exception:
+                            # Fallback: plain text if XML is malformed
+                            story.append(Paragraph(
+                                self._escape_xml(block_text),
+                                self.styles['AssistantMessage']
+                            ))
+
                     # Add sources if available
                     if msg.get('sources') and len(msg['sources']) > 0:
                         sources_text = "<b>Sources:</b><br/>"
                         for idx, source in enumerate(msg['sources'], 1):
-                            title = self._escape_html(source.get('title', 'Untitled'))
+                            title = self._escape_xml(source.get('title', 'Untitled'))
                             url = source.get('url', '')
                             if url:
                                 sources_text += f"{idx}. {title} ({url})<br/>"
                             else:
                                 sources_text += f"{idx}. {title}<br/>"
-                        
+
                         story.append(Paragraph(sources_text, self.styles['SourceCitation']))
                 
                 story.append(Spacer(1, 0.2*inch))
@@ -222,25 +256,104 @@ class ChatPDFGenerator:
             logger.error(f"[PDF Generator] Error generating PDF: {e}")
             raise
     
-    def _escape_html(self, text: str) -> str:
+    def _escape_xml(self, text: str) -> str:
         """
-        Escape HTML special characters for ReportLab
-        
-        Args:
-            text: Text to escape
-        
-        Returns:
-            Escaped text
+        Escape characters that are special in ReportLab's XML/HTML parser.
+        Only escapes raw text segments, NOT pre-built HTML tags.
         """
-        replacements = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }
-        
-        for old, new in replacements.items():
-            text = text.replace(old, new)
-        
+        text = text.replace('&', '&amp;')
+        text = text.replace('<', '&lt;')
+        text = text.replace('>', '&gt;')
         return text
+
+    def _escape_html(self, text: str) -> str:
+        """Legacy alias kept for any external callers."""
+        return self._escape_xml(text)
+
+    def _convert_inline_markdown(self, text: str) -> str:
+        """
+        Convert inline markdown markers to ReportLab-compatible XML tags.
+
+        Conversion order:
+        1. Escape raw XML chars (&, <, >) so they don't break the parser.
+        2. Convert **bold** → <b>bold</b>
+        3. Convert *italic* → <i>italic</i>  (avoids bullet-point asterisks)
+        """
+        text = self._escape_xml(text)
+        # Bold: **text** → <b>text</b>
+        text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+        # Italic: *text* not followed/preceded by another * → <i>text</i>
+        text = re.sub(r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)', r'<i>\1</i>', text)
+        return text
+
+    def _markdown_to_reportlab_blocks(self, text: str) -> List[Tuple[str, str]]:
+        """
+        Parse markdown text and return a list of (xml_content, style_name) tuples
+        ready for use with ReportLab Paragraph.
+
+        Handles:
+        - Headings: ### / ## / # → ResponseHeader style
+        - Bullet points: lines starting with *, -, or • → BulletItem style
+        - Numbered lists: lines starting with "1. " etc. → BulletItem style
+        - Regular paragraphs → AssistantMessage style
+        - Double-newline paragraph breaks
+        """
+        blocks: List[Tuple[str, str]] = []
+
+        # Split into logical blocks by blank lines
+        raw_blocks = re.split(r'\n{2,}', text.strip())
+
+        for raw_block in raw_blocks:
+            raw_block = raw_block.strip()
+            if not raw_block:
+                continue
+
+            lines = raw_block.splitlines()
+
+            # Collect lines, classifying each
+            para_lines = []  # accumulate normal paragraph lines
+
+            def flush_para() -> None:
+                if para_lines:
+                    joined = '<br/>'.join(para_lines)
+                    blocks.append((joined, 'AssistantMessage'))
+                    para_lines.clear()
+
+            for line in lines:
+                stripped = line.strip()
+                if not stripped:
+                    flush_para()
+                    continue
+
+                # Headings
+                heading_match = re.match(r'^(#{1,3})\s+(.*)', stripped)
+                if heading_match:
+                    flush_para()
+                    heading_text = self._convert_inline_markdown(heading_match.group(2))
+                    blocks.append((heading_text, 'ResponseHeader'))
+                    continue
+
+                # Bullet points (* item, - item, • item)
+                bullet_match = re.match(r'^[*\-•]\s+(.*)', stripped)
+                if bullet_match:
+                    flush_para()
+                    bullet_text = '• ' + self._convert_inline_markdown(bullet_match.group(1))
+                    blocks.append((bullet_text, 'BulletItem'))
+                    continue
+
+                # Numbered list (1. item, 2. item …)
+                numbered_match = re.match(r'^\d+\.\s+(.*)', stripped)
+                if numbered_match:
+                    flush_para()
+                    item_text = self._convert_inline_markdown(numbered_match.group(1))
+                    # Prepend the number from the original line
+                    number = re.match(r'^(\d+)\.', stripped).group(1)
+                    blocks.append((f"{number}. {item_text}", 'BulletItem'))
+                    continue
+
+                # Normal line — accumulate into current paragraph
+                para_lines.append(self._convert_inline_markdown(stripped))
+
+            flush_para()
+
+        return blocks if blocks else [('', 'AssistantMessage')]

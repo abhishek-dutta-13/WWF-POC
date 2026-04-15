@@ -43,11 +43,47 @@ class SupervisorAgent:
         
         logger.info("[Supervisor Agent] Initialized")
     
+    # Broad set of sustainability/environment/WWF-relevant topic keywords
+    SUSTAINABILITY_KEYWORDS = [
+        # Core environmental
+        'environment', 'environmental', 'sustainability', 'sustainable', 'conservation',
+        'climate', 'climate change', 'global warming', 'greenhouse', 'carbon', 'emissions',
+        'pollution', 'air quality', 'water quality', 'soil', 'deforestation', 'reforestation',
+        'biodiversity', 'ecosystem', 'habitat', 'species', 'wildlife', 'endangered',
+        'ocean', 'marine', 'coral', 'wetland', 'forest', 'rainforest', 'glacier',
+        'renewable', 'solar', 'wind energy', 'clean energy', 'fossil fuel', 'net zero',
+
+        # WWF & organisations
+        'wwf', 'world wildlife', 'world wide fund', 'panda', 'conservation effort',
+        'environmental ngo', 'green initiative',
+
+        # Circular economy & waste
+        'circular economy', 'waste', 'recycling', 'compost', 'plastic', 'e-waste',
+        'zero waste', 'upcycling', 'landfill', 'packaging',
+
+        # Agriculture & food
+        'agriculture', 'farming', 'palm oil', 'sustainable food', 'food waste',
+        'organic', 'pesticide', 'irrigation', 'crop', 'soil health',
+
+        # Finance & policy
+        'esg', 'green finance', 'sustainable finance', 'carbon credit', 'carbon offset',
+        'environmental policy', 'paris agreement', 'cop', 'kyoto', 'regulation',
+        'environmental law', 'government policy', 'sustainability strategy',
+
+        # Water & land
+        'water scarcity', 'water management', 'river', 'groundwater', 'drought',
+        'flood', 'natural disaster', 'land degradation',
+
+        # People & society
+        'indigenous', 'community', 'social impact', 'green jobs', 'eco-friendly',
+        'nature-based', 'environmental justice', 'ecological',
+    ]
+
     def route_query(
         self,
         query: str,
         user_location: str = ""
-    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query']:
+    ) -> Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query', 'off_topic']:
         """
         Analyze query and determine routing
         
@@ -56,11 +92,12 @@ class SupervisorAgent:
             user_location: User's location (helps determine if location-specific)
         
         Returns:
-            Agent route: 'rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', or 'invalid_query'
+            Agent route: 'rag', 'web_search', 'hybrid', 'pdf_export', 'greeting',
+                         'invalid_query', or 'off_topic'
         """
         query_lower = query.lower().strip()
         
-        # 1. Check for simple greetings (highest priority - avoid unnecessary processing)
+        # 1. Check for simple greetings / personal questions (highest priority)
         if self._is_greeting(query_lower):
             logger.info("[Supervisor] Routing to: GREETING")
             return 'greeting'
@@ -75,13 +112,18 @@ class SupervisorAgent:
             logger.info("[Supervisor] Routing to: PDF_EXPORT")
             return 'pdf_export'
         
-        # 4. Check for web search indicators
+        # 4. Reject queries unrelated to sustainability / WWF
+        if not self._is_sustainability_related(query_lower):
+            logger.info("[Supervisor] Routing to: OFF_TOPIC (not sustainability/environment related)")
+            return 'off_topic'
+        
+        # 5. Check for web search indicators
         needs_web = self._needs_web_search(query_lower)
         
-        # 5. Check for RAG indicators
+        # 6. Check for RAG indicators
         needs_rag = self._needs_rag(query_lower)
         
-        # 6. Decide routing
+        # 7. Decide routing
         if needs_web and needs_rag:
             logger.info("[Supervisor] Routing to: HYBRID (both RAG + Web Search)")
             return 'hybrid'
@@ -89,17 +131,17 @@ class SupervisorAgent:
             logger.info("[Supervisor] Routing to: WEB_SEARCH")
             return 'web_search'
         elif needs_rag:
-            # Only use RAG if query matches known topics
             logger.info("[Supervisor] Routing to: RAG (topic match found)")
             return 'rag'
         else:
-            # If no clear match, default to web search for broader coverage
-            logger.info("[Supervisor] Routing to: WEB_SEARCH (no RAG topic match, using web for broader coverage)")
+            # Sustainability-related but no specific indicator → web search for broader coverage
+            logger.info("[Supervisor] Routing to: WEB_SEARCH (sustainability topic, using web for coverage)")
             return 'web_search'
     
     def _is_greeting(self, query_lower: str) -> bool:
         """
-        Detect if query is a simple greeting
+        Detect if query is a simple greeting or personal/social question
+        that should not be forwarded to a search agent.
         
         Args:
             query_lower: Lowercased query string
@@ -107,24 +149,52 @@ class SupervisorAgent:
         Returns:
             True if greeting detected
         """
-        # Simple greetings - single word or very short phrases
-        simple_greetings = [
+        # Exact match greetings
+        simple_greetings = {
             'hi', 'hello', 'hey', 'greetings', 'good morning',
             'good afternoon', 'good evening', 'howdy', 'hiya',
-            'yo', 'sup', "what's up", 'whats up'
-        ]
-        
-        # Check if query is exactly a greeting or starts with greeting
+            'yo', 'sup', "what's up", 'whats up',
+            'how are you', 'how are you?', "how're you", "how're you doing",
+            'how do you do', 'how is it going', 'how are things',
+            "what's your name", 'what is your name', 'who are you',
+            'are you a bot', 'are you an ai', 'are you human',
+            'nice to meet you', 'good to meet you',
+            'thanks', 'thank you', 'thank you!', 'thanks!',
+            'bye', 'goodbye', 'see you', 'see ya', 'take care',
+        }
+
         if query_lower in simple_greetings:
             return True
-        
-        # Check if query starts with greeting word (e.g., "hi there", "hello!")
+
+        # Short phrase starters that indicate social/personal chitchat
         greeting_starters = ['hi', 'hello', 'hey', 'greetings']
         words = query_lower.split()
-        if len(words) <= 3 and any(query_lower.startswith(starter) for starter in greeting_starters):
+        if len(words) <= 3 and any(query_lower.startswith(s) for s in greeting_starters):
             return True
-        
+
+        # Patterns that are clearly personal/social, not topic queries
+        social_patterns = [
+            'how are you', "how're you", 'how is your day', 'how was your day',
+            'what are you', 'who are you', "what's your name", 'tell me about yourself',
+            'can you help me', 'what can you do', 'help me',
+        ]
+        if any(query_lower.startswith(p) for p in social_patterns):
+            return True
+
         return False
+
+    def _is_sustainability_related(self, query_lower: str) -> bool:
+        """
+        Check whether the query is related to sustainability, environment,
+        or anything that falls within WWF's scope.
+
+        Args:
+            query_lower: Lowercased query string
+
+        Returns:
+            True if the query is on-topic for WWF/sustainability
+        """
+        return any(keyword in query_lower for keyword in self.SUSTAINABILITY_KEYWORDS)
     
     def _is_invalid_query(self, query_lower: str) -> bool:
         """
@@ -270,6 +340,7 @@ class SupervisorAgent:
         explanations = {
             'greeting': "Hello! How can I help you today?",
             'invalid_query': "I need more information to help you. Could you please provide a more detailed question?",
+            'off_topic': "I can only answer questions related to sustainability, environment, and WWF topics.",
             'rag': "I'll search our WWF knowledge base for this information.",
             'web_search': "I'll search the web for current information on this topic.",
             'hybrid': "I'll combine information from our WWF knowledge base and current web sources.",
