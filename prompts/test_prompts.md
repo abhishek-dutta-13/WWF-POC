@@ -283,6 +283,106 @@ What does WWF's circular economy report say, and are there any recent updates?
 
 ---
 
+## 🗂️ 11. AGENT ROUTING REFERENCE
+
+Use these prompts to verify the correct agent badge appears in the UI.
+
+### 📚 Knowledge Base (RAG) — matches topics in the vector store
+
+```
+What is circular economy?
+```
+```
+Tell me about plastic waste reduction strategies
+```
+```
+How does composting work?
+```
+```
+Explain ESG factors in infrastructure investments
+```
+```
+What is sustainable palm oil?
+```
+```
+Tell me about zero waste practices
+```
+```
+What are WWF's guidelines on waste management?
+```
+```
+How to integrate ESG factors into financial models?
+```
+```
+Sustainable agriculture best practices
+```
+```
+What are environmental management standards?
+```
+
+> **Expected badge:** 📚 Knowledge Base
+
+---
+
+### 🌐 Web Search — time-sensitive, location-specific, or outside RAG scope
+
+```
+What are the latest WWF initiatives in 2026?
+```
+```
+Current water pollution news in India
+```
+```
+Recent animal conservation projects
+```
+```
+What's happening with climate change today?
+```
+```
+WWF campaigns in my area
+```
+```
+Latest environmental regulations in California
+```
+```
+Water pollution guidelines
+```
+```
+Animal preservation for endangered species
+```
+```
+Fishery sustainability
+```
+```
+New government policies on conservation
+```
+
+> **Expected badge:** 🌐 Web Search
+
+---
+
+### 🔀 Hybrid (KB + Web) — needs both document knowledge AND current info
+
+```
+What is circular economy and are there any recent initiatives?
+```
+```
+Tell me about sustainable palm oil and latest WWF projects
+```
+```
+ESG factors in infrastructure - what are current trends?
+```
+```
+Plastic waste reduction strategies used today
+```
+```
+Latest updates on sustainable agriculture practices
+```
+
+> **Expected badge:** 🔀 Hybrid (KB + Web)
+
+---
+
 ## 📋 EXPECTED RESULTS SUMMARY
 
 | Category | Expected Behaviour |
@@ -297,3 +397,6 @@ What does WWF's circular economy report say, and are there any recent updates?
 | Multilingual | Response in selected language |
 | Invalid/gibberish | Request for clarification |
 | Hybrid | Combined RAG + web response |
+| RAG routing prompts | 📚 Knowledge Base badge |
+| Web search routing prompts | 🌐 Web Search badge |
+| Hybrid routing prompts | 🔀 Hybrid (KB + Web) badge |
