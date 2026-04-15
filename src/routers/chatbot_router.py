@@ -17,7 +17,7 @@ from chatbot.models import (
     SendMessageRequest, SendMessageResponse,
     ChatHistoryResponse, ChatMessageDTO,
     UserSessionsResponse, ChatSessionSummary,
-    UserContext, Source
+    UserContext, Source, UserInfoResponse
 )
 from chatbot.database import get_db, User, ChatSession, ChatMessage
 from chatbot.agents.graph import ChatbotWorkflow
@@ -85,14 +85,19 @@ async def initialize_session(
     try:
         logger.info(f"Initializing session for user: {request.user_id}")
         
+        DEFAULTS = {'Demo User', 'Sustainability Professional', 'Global'}
+
         # Check if user exists, create or update
         user = db.query(User).filter(User.user_id == request.user_id).first()
         
         if user:
-            # Update existing user
-            user.name = request.name
-            user.education = request.education
-            user.location = request.location
+            # Only overwrite stored values if real (non-default) data is provided
+            if request.name not in DEFAULTS:
+                user.name = request.name
+            if request.education not in DEFAULTS:
+                user.education = request.education
+            if request.location not in DEFAULTS:
+                user.location = request.location
         else:
             # Create new user
             user = User(
@@ -112,12 +117,12 @@ async def initialize_session(
         db.add(session)
         db.commit()
         
-        # Generate welcome message
+        # Generate welcome message using actual (possibly stored) user data
         user_context = UserContext(
-            user_id=request.user_id,
-            name=request.name,
-            education=request.education,
-            location=request.location
+            user_id=user.user_id,
+            name=user.name,
+            education=user.education,
+            location=user.location
         )
         
         workflow_instance = get_workflow()
@@ -129,7 +134,10 @@ async def initialize_session(
             session_id=session_id,
             user_id=request.user_id,
             message="Chat session initialized successfully",
-            welcome_message=welcome_message
+            welcome_message=welcome_message,
+            name=user.name,
+            education=user.education,
+            location=user.location
         )
     
     except Exception as e:
@@ -458,6 +466,27 @@ async def get_user_sessions(
     except Exception as e:
         logger.error(f"Error retrieving user sessions: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve user sessions: {str(e)}")
+
+
+@router.get("/user/{user_id}/info", response_model=UserInfoResponse)
+async def get_user_info(
+    user_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get stored profile info for a returning user.
+    Used by the frontend on page load so it can populate correct name/location
+    without relying on URL params.
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserInfoResponse(
+        user_id=user.user_id,
+        name=user.name,
+        education=user.education,
+        location=user.location
+    )
 
 
 @router.get("/sessions/{user_id}", response_model=UserSessionsResponse)

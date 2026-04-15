@@ -448,18 +448,36 @@
             useEffect(() => {
                 const initSession = async () => {
                     try {
-                        // Get parameters from URL
                         const urlParams = new URLSearchParams(window.location.search);
                         const userId = urlParams.get('user_id') || 'demo_user';
-                        const name = urlParams.get('name') || 'Demo User';
-                        const education = urlParams.get('education') || 'Sustainability Professional';
-                        const location = urlParams.get('location') || 'Global';
+
+                        // Try to load stored user info from the backend (returning user)
+                        let name = urlParams.get('name');
+                        let education = urlParams.get('education');
+                        let location = urlParams.get('location');
+
+                        if (!name || !location) {
+                            try {
+                                const userRes = await fetch(`${API_BASE_URL}/chatbot/user/${userId}/info`);
+                                if (userRes.ok) {
+                                    const userData = await userRes.json();
+                                    name = name || userData.name;
+                                    education = education || userData.education;
+                                    location = location || userData.location;
+                                }
+                            } catch (_) {
+                                // Not found — new user, use defaults below
+                            }
+                        }
+
+                        name = name || 'Demo User';
+                        education = education || 'Sustainability Professional';
+                        location = location || 'Global';
 
                         const userCtx = { user_id: userId, name, education, location };
                         setUserContext(userCtx);
 
-                        // Always start a fresh new session on page load
-                        // Previous conversations are accessible via the sidebar
+                        // Always start a fresh new session; history is in the sidebar
                         console.log('[Chat] Starting fresh session for user:', userId);
 
                         const response = await fetch(`${API_BASE_URL}/chatbot/session/init`, {
@@ -473,7 +491,16 @@
                         const data = await response.json();
                         setSessionId(data.session_id);
 
-                        // Show welcome message in the fresh session
+                        // Use the name/location the backend confirmed (covers stored user case)
+                        if (data.name) {
+                            setUserContext({
+                                user_id: userId,
+                                name: data.name,
+                                education: data.education,
+                                location: data.location
+                            });
+                        }
+
                         setMessages([{
                             role: 'assistant',
                             content: data.welcome_message,

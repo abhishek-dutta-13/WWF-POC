@@ -21,8 +21,16 @@ class UserContext(BaseModel):
             raise ValueError('Field cannot be empty')
         return v.strip()
 
+
+class UserInfoResponse(BaseModel):
+    """Basic user profile info"""
+    user_id: str
+    name: str
+    education: str
+    location: str
 
-class InitSessionRequest(BaseModel):
+
+
     """Request to initialize a new chat session"""
     user_id: str
     name: str
@@ -36,6 +44,9 @@ class InitSessionResponse(BaseModel):
     user_id: str
     message: str
     welcome_message: str
+    name: Optional[str] = None
+    education: Optional[str] = None
+    location: Optional[str] = None
 
 
 class Source(BaseModel):
