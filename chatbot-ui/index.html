@@ -920,14 +920,20 @@
                                         message.agent_used === 'hybrid' ? 'bg-purple-100 text-purple-800' :
                                         message.agent_used === 'greeting' ? 'bg-gray-100 text-gray-800' :
                                         message.agent_used === 'invalid_query' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-orange-100 text-orange-800'
+                                        message.agent_used === 'pdf_export' ? 'bg-orange-100 text-orange-800' :
+                                        message.agent_used === 'off_topic' ? 'bg-red-100 text-red-800' :
+                                        message.agent_used === 'blocked' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
                                     }`}>
                                         {message.agent_used === 'rag' ? '📚 Knowledge Base' :
                                          message.agent_used === 'web_search' ? '🌐 Web Search' :
                                          message.agent_used === 'hybrid' ? '🔀 Hybrid (KB + Web)' :
                                          message.agent_used === 'greeting' ? '👋 Greeting' :
                                          message.agent_used === 'invalid_query' ? '⚠️ Clarification Needed' :
-                                         '📄 PDF Export'}
+                                         message.agent_used === 'pdf_export' ? '📄 PDF Export' :
+                                         message.agent_used === 'off_topic' ? '🚫 Off Topic' :
+                                         message.agent_used === 'blocked' ? '🛡️ Blocked' :
+                                         null}
                                     </span>
                                 </div>
                             )}
