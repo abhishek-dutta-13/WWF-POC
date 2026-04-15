@@ -30,7 +30,7 @@ class UserInfoResponse(BaseModel):
     location: str
 
 
-
+class InitSessionRequest(BaseModel):
     """Request to initialize a new chat session"""
     user_id: str
     name: str
