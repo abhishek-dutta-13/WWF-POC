@@ -260,9 +260,7 @@ async def send_message(
             # Create download URL
             pdf_filename = Path(pdf_path).name
             pdf_url = f"/chatbot/download/{pdf_filename}"
-            
-            # Add PDF URL to response
-            result['response'] += f"\n\n📥 [Download PDF]({pdf_url})"
+            # The frontend renders a Download PDF button from pdf_url — no need to append raw link
         
         # Save assistant message to database
         assistant_message = ChatMessage(
