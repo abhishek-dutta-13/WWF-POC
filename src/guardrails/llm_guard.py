@@ -25,7 +25,13 @@ Usage:
     sanitized_output, is_safe, reason = guard.scan_output(user_message, llm_response)
 """
 import logging
+import os
 from typing import Tuple
+
+# Use the same HuggingFace cache that was populated during build
+_hf_cache = os.getenv("HF_HOME", os.path.join(os.path.dirname(__file__), "..", "..", ".hf_cache"))
+os.environ.setdefault("HF_HOME", _hf_cache)
+os.environ.setdefault("TRANSFORMERS_CACHE", _hf_cache)
 
 logger = logging.getLogger(__name__)
 
