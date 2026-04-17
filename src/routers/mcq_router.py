@@ -17,6 +17,7 @@ from dependencies import verify_api_key, COURSE_ID_TO_CATEGORY, DATA_BASE_PATH
 from services import process_category_mcqs  # Business logic
 from utils import transform_to_quickbase_format  # Utility function
 from quickbase_client import push_mcqs_to_quickbase
+from langsmith_integration.tracer import mcq_trace
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,8 @@ async def generate_mcqs(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
-        mcq_set = process_category_mcqs(category)
+        with mcq_trace(course_id):
+            mcq_set = process_category_mcqs(category)
         
         if not mcq_set:
             raise HTTPException(
@@ -121,7 +123,8 @@ async def generate_mcqs_quickbase(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
-        mcq_set = process_category_mcqs(category)
+        with mcq_trace(course_id):
+            mcq_set = process_category_mcqs(category)
         
         if not mcq_set:
             raise HTTPException(

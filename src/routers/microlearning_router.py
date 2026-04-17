@@ -15,6 +15,7 @@ from models import MCQRequest
 from dependencies import verify_api_key, get_microlearning_generator, COURSE_ID_TO_CATEGORY
 from services.microlearning_generator import MicrolearningGenerator, transform_to_quickbase_format
 from quickbase_client import push_microlearning_to_quickbase
+from langsmith_integration.tracer import microlearning_trace
 
 logger = logging.getLogger(__name__)
 
@@ -83,14 +84,15 @@ async def generate_microlearning_quickbase(
         language = request.language or "English"
         logger.info(f"Generating content in language: {language}")
         
-        # Generate micro-learning modules using RAG
+        # Generate micro-learning modules using RAG (traced in LangSmith under micro_learning)
         logger.info(f"Generating micro-learning modules for category: {category}")
-        modules = generator.generate_microlearning_modules(
-            category=category,
-            language=language,
-            top_k_chunks=20,
-            max_chunks_for_llm=15
-        )
+        with microlearning_trace(course_id):
+            modules = generator.generate_microlearning_modules(
+                category=category,
+                language=language,
+                top_k_chunks=20,
+                max_chunks_for_llm=15
+            )
         
         # Check for errors
         if 'error' in modules and not modules.get('chapters'):
@@ -209,14 +211,15 @@ async def generate_microlearning_modules_only(
         language = request.language or "English"
         logger.info(f"Generating content in language: {language}")
         
-        # Generate micro-learning modules using RAG
+        # Generate micro-learning modules using RAG (traced in LangSmith under micro_learning)
         logger.info(f"Generating micro-learning modules for category: {category}")
-        modules = generator.generate_microlearning_modules(
-            category=category,
-            language=language,
-            top_k_chunks=20,
-            max_chunks_for_llm=15
-        )
+        with microlearning_trace(course_id):
+            modules = generator.generate_microlearning_modules(
+                category=category,
+                language=language,
+                top_k_chunks=20,
+                max_chunks_for_llm=15
+            )
         
         # Check for errors
         if 'error' in modules and not modules.get('chapters'):

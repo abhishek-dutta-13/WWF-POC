@@ -37,5 +37,8 @@ reportlab>=4.0.0
 # Content Safety - OpenAI Moderation API (free, fast, no local model downloads)
 # Uses existing OPENAI_API_KEY — no extra setup needed
 
+# LangSmith — LLM observability and tracing
+langsmith>=0.1.0
+
 # Optional: For enhanced logging
 python-multipart>=0.0.6

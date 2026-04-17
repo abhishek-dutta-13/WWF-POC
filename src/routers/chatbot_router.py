@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from langsmith_integration.tracer import chatbot_trace
 from chatbot.models import (
     InitSessionRequest, InitSessionResponse,
     SendMessageRequest, SendMessageResponse,
@@ -233,13 +234,14 @@ async def send_message(
                 pdf_url=None
             )
 
-        # Process through workflow
+        # Process through workflow (traced in LangSmith under AI_Chatbot_Assistant)
         workflow_instance = get_workflow()
-        result = workflow_instance.process_message(
-            query=request.message,
-            user_context=user_context,
-            language=request.language or "English"
-        )
+        with chatbot_trace(request.session_id):
+            result = workflow_instance.process_message(
+                query=request.message,
+                user_context=user_context,
+                language=request.language or "English"
+            )
 
         # Scan output with OpenAI Moderation before returning
         if result['agent_used'] not in ('blocked', 'greeting', 'invalid_query', 'off_topic', 'pdf_export'):

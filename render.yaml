@@ -17,5 +17,11 @@ services:
         value: "*"  # Update with your Quickbase domain in Render dashboard
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: LANGCHAIN_TRACING_V2
+        value: "true"
+      - key: LANGSMITH_PROJECT
+        value: "WWF-AI-Platform"
+      - key: LANGCHAIN_API_KEY
+        sync: false  # Set this manually in Render dashboard
     healthCheckPath: /health
     autoDeploy: true  # Auto-deploy on git push
