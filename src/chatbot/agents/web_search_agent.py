@@ -7,6 +7,7 @@ from typing import List, Tuple
 from tavily import TavilyClient
 from duckduckgo_search import DDGS
 from chatbot.models import Source
+from langsmith_integration.tracer import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class WebSearchAgent:
         # DuckDuckGo is always available as fallback (no API key needed)
         logger.info("[Web Search Agent] DuckDuckGo fallback available")
     
+    @traceable(run_type="tool", name="web_search")
     def search(self, query: str, user_location: str = "") -> Tuple[str, List[Source]]:
         """
         Perform web search with location-aware query enhancement.

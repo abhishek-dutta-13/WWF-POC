@@ -9,6 +9,7 @@ from chatbot.agents.supervisor import SupervisorAgent
 from chatbot.agents.rag_agent import RAGAgent
 from chatbot.agents.web_search_agent import WebSearchAgent
 from chatbot.agents.response_agent import ResponseAgent
+from langsmith_integration.tracer import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ class ChatbotWorkflow:
         
         logger.info("[Chatbot Workflow] All agents initialized successfully")
     
+    @traceable(run_type="chain", name="chatbot_workflow")
     def process_message(
         self,
         query: str,

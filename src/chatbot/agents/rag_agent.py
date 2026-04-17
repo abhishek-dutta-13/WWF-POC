@@ -9,6 +9,7 @@ from typing import List, Dict, Tuple
 import chromadb
 from chromadb.utils import embedding_functions
 from chatbot.models import Source
+from langsmith_integration.tracer import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,7 @@ class RAGAgent:
         )
         logger.info(f"[RAG Agent] Connected to collection '{collection_name}' with {self.collection.count()} chunks")
     
+    @traceable(run_type="retriever", name="rag_retrieval")
     def retrieve(self, query: str, user_location: str = "") -> Tuple[str, List[Source]]:
         """
         Retrieve relevant context from vector store

@@ -4,6 +4,7 @@ Supervisor Agent - Routes queries to appropriate agents
 """
 import logging
 from typing import Literal
+from langsmith_integration.tracer import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,7 @@ class SupervisorAgent:
         'environmental justice', 'social impact',
     ]
 
+    @traceable(run_type="chain", name="supervisor_routing")
     def route_query(
         self,
         query: str,
