@@ -330,6 +330,25 @@
             const [isLoading, setIsLoading] = useState(false);
             const [isInitializing, setIsInitializing] = useState(true);
             const [error, setError] = useState(null);
+
+            // Submit 👍/👎 feedback to LangSmith for a specific message
+            const submitFeedback = async (messageIndex, thumbsUp) => {
+                const msg = messages[messageIndex];
+                if (!msg || !msg.run_id || msg.feedback !== null) return;
+                // Optimistically update UI
+                setMessages(prev => prev.map((m, i) =>
+                    i === messageIndex ? { ...m, feedback: thumbsUp ? 'up' : 'down' } : m
+                ));
+                try {
+                    await fetch(`${API_BASE_URL}/chatbot/feedback`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ run_id: msg.run_id, thumbs_up: thumbsUp })
+                    });
+                } catch (err) {
+                    console.error('Failed to submit feedback:', err);
+                }
+            };
             // Hide sidebar by default on mobile
             const [showSidebar, setShowSidebar] = useState(window.innerWidth >= 768);
             const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -559,7 +578,9 @@
                         timestamp: data.timestamp,
                         sources: data.sources || [],
                         agent_used: data.agent_used,
-                        pdf_url: data.pdf_url
+                        pdf_url: data.pdf_url,
+                        run_id: data.run_id || null,
+                        feedback: null  // null = not yet rated, 'up' or 'down' once rated
                     };
 
                     setMessages(prev => [...prev, assistantMessage]);
@@ -761,7 +782,7 @@
                         {/* Messages Area */}
                         <div className="messages-container space-y-3 sm:space-y-4 px-1 sm:px-2">
                             {messages.map((msg, idx) => (
-                                <Message key={idx} message={msg} />
+                                <Message key={idx} message={msg} index={idx} onFeedback={submitFeedback} />
                             ))}
                             
                             {isLoading && <TypingIndicator />}
@@ -892,7 +913,7 @@
         }
 
         // Message Component
-        function Message({ message }) {
+        function Message({ message, index, onFeedback }) {
             const isUser = message.role === 'user';
 
             return (
@@ -971,6 +992,29 @@
                                         </svg>
                                         <span>Download PDF</span>
                                     </a>
+                                </div>
+                            )}
+                            {/* Thumbs up / down feedback — only for AI responses with a LangSmith run_id */}
+                            {!isUser && message.run_id && (
+                                <div className="mt-2 flex items-center space-x-2">
+                                    <span className="text-xs text-gray-400">Was this helpful?</span>
+                                    <button
+                                        onClick={() => onFeedback(index, true)}
+                                        disabled={message.feedback !== null}
+                                        title="Good response"
+                                        className={`text-lg transition-transform hover:scale-110 disabled:cursor-default ${message.feedback === 'up' ? 'opacity-100' : message.feedback === 'down' ? 'opacity-30' : 'opacity-60 hover:opacity-100'}`}
+                                    >👍</button>
+                                    <button
+                                        onClick={() => onFeedback(index, false)}
+                                        disabled={message.feedback !== null}
+                                        title="Bad response"
+                                        className={`text-lg transition-transform hover:scale-110 disabled:cursor-default ${message.feedback === 'down' ? 'opacity-100' : message.feedback === 'up' ? 'opacity-30' : 'opacity-60 hover:opacity-100'}`}
+                                    >👎</button>
+                                    {message.feedback && (
+                                        <span className="text-xs text-gray-400 italic">
+                                            {message.feedback === 'up' ? 'Thanks for the feedback!' : 'Thanks, we\'ll improve!'}
+                                        </span>
+                                    )}
                                 </div>
                             )}
                         </div>

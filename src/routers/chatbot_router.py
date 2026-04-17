@@ -12,13 +12,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from langsmith_integration.tracer import chatbot_trace
+from langsmith_integration.tracer import chatbot_trace, submit_feedback
 from chatbot.models import (
     InitSessionRequest, InitSessionResponse,
     SendMessageRequest, SendMessageResponse,
     ChatHistoryResponse, ChatMessageDTO,
     UserSessionsResponse, ChatSessionSummary,
-    UserContext, Source, UserInfoResponse
+    UserContext, Source, UserInfoResponse, FeedbackRequest
 )
 from chatbot.database import get_db, User, ChatSession, ChatMessage
 from chatbot.agents.graph import ChatbotWorkflow
@@ -236,12 +236,22 @@ async def send_message(
 
         # Process through workflow (traced in LangSmith under AI_Chatbot_Assistant)
         workflow_instance = get_workflow()
-        with chatbot_trace(request.session_id):
+        ls_run_id = None
+        with chatbot_trace(
+            request.session_id,
+            inputs={"query": request.message, "language": request.language or "English"}
+        ) as run_tree:
             result = workflow_instance.process_message(
                 query=request.message,
                 user_context=user_context,
                 language=request.language or "English"
             )
+            if run_tree:
+                run_tree.end(outputs={
+                    "response": result["response"],
+                    "agent_used": result["agent_used"],
+                })
+                ls_run_id = str(run_tree.id)
 
         # Scan output with OpenAI Moderation before returning
         if result['agent_used'] not in ('blocked', 'greeting', 'invalid_query', 'off_topic', 'pdf_export'):
@@ -281,7 +291,8 @@ async def send_message(
             message_metadata={
                 'agent_used': result['agent_used'],
                 'sources': [s.dict() for s in result['sources']],
-                'pdf_url': pdf_url
+                'pdf_url': pdf_url,
+                'ls_run_id': ls_run_id
             }
         )
         db.add(assistant_message)
@@ -298,7 +309,8 @@ async def send_message(
             sources=result['sources'],
             agent_used=result['agent_used'],
             timestamp=assistant_message.timestamp.isoformat(),
-            pdf_url=pdf_url
+            pdf_url=pdf_url,
+            run_id=ls_run_id
         )
     
     except HTTPException:
@@ -527,6 +539,26 @@ async def download_pdf(filename: str):
     except Exception as e:
         logger.error(f"Error downloading PDF: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to download PDF: {str(e)}")
+
+
+@router.post("/feedback")
+async def submit_message_feedback(request: FeedbackRequest):
+    """
+    Submit 👍/👎 feedback for an AI response.
+
+    Sends human feedback to LangSmith, visible in the trace's Feedback tab.
+    score=1 / value="Good" for thumbs up, score=0 / value="Bad" for thumbs down.
+
+    If LangSmith tracing is not configured, returns success silently (no-op).
+    """
+    if not request.run_id:
+        raise HTTPException(status_code=400, detail="run_id is required")
+
+    success = submit_feedback(run_id=request.run_id, thumbs_up=request.thumbs_up)
+    return {
+        "status": "ok" if success else "skipped",
+        "message": "Feedback submitted" if success else "LangSmith not configured — feedback skipped"
+    }
 
 
 def _get_session_messages(db: Session, session_id: str) -> List[dict]:

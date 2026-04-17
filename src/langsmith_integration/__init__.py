@@ -10,6 +10,6 @@ Project: WWF-AI-Platform
 Thread ID: session_id / course_id passed via metadata
 """
 
-from .tracer import chatbot_trace, mcq_trace, microlearning_trace
+from .tracer import chatbot_trace, mcq_trace, microlearning_trace, submit_feedback, traceable
 
-__all__ = ["chatbot_trace", "mcq_trace", "microlearning_trace"]
+__all__ = ["chatbot_trace", "mcq_trace", "microlearning_trace", "submit_feedback", "traceable"]

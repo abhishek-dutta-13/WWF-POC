@@ -56,8 +56,10 @@ async def generate_mcqs(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
-        with mcq_trace(course_id):
+        with mcq_trace(course_id, inputs={"category": category, "course_id": course_id}) as run_tree:
             mcq_set = process_category_mcqs(category)
+            if run_tree and mcq_set:
+                run_tree.end(outputs={"total_questions": mcq_set.total_questions, "category": category})
         
         if not mcq_set:
             raise HTTPException(
@@ -123,8 +125,10 @@ async def generate_mcqs_quickbase(
         
         logger.info(f"CourseID '{course_id}' mapped to category: {category}")
         
-        with mcq_trace(course_id):
+        with mcq_trace(course_id, inputs={"category": category, "course_id": course_id}) as run_tree:
             mcq_set = process_category_mcqs(category)
+            if run_tree and mcq_set:
+                run_tree.end(outputs={"total_questions": mcq_set.total_questions, "category": category})
         
         if not mcq_set:
             raise HTTPException(

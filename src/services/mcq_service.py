@@ -21,6 +21,7 @@ from pathlib import Path
 from models import MCQQuestion, MCQSet
 from dependencies import groq_client, pdf_content_cache, DATA_BASE_PATH
 from utils import extract_text_from_pdf
+from langsmith_integration.tracer import traceable
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ BATCH_SIZE = 15  # Number of questions to generate before rate limit delay
 RATE_LIMIT_DELAY = 61  # Seconds to wait between batches
 
 
+@traceable(run_type="llm", name="mcq_llm_generation")
 def generate_mcq_set(
     category: str,
     pdf_content: str,

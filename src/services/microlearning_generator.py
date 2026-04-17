@@ -31,6 +31,9 @@ from chromadb.utils import embedding_functions
 from groq import Groq
 from openai import OpenAI
 
+# LangSmith tracing
+from langsmith_integration.tracer import traceable
+
 # Environment
 from dotenv import load_dotenv
 
@@ -262,6 +265,7 @@ class MicrolearningGenerator:
             logger.error(f"Error retrieving content for category '{category}': {e}")
             return []
     
+    @traceable(run_type="llm", name="microlearning_llm_generation")
     def generate_microlearning_modules(
         self,
         category: str,

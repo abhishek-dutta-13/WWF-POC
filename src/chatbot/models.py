@@ -92,6 +92,13 @@ class SendMessageResponse(BaseModel):
     agent_used: Literal['rag', 'web_search', 'hybrid', 'pdf_export', 'greeting', 'invalid_query', 'off_topic', 'blocked']
     timestamp: str
     pdf_url: Optional[str] = None  # Only present if PDF was generated
+    run_id: Optional[str] = None   # LangSmith run ID for feedback submission
+
+
+class FeedbackRequest(BaseModel):
+    """Request to submit thumbs up/down feedback for a message"""
+    run_id: str
+    thumbs_up: bool  # True = 👍 Good (score=1), False = 👎 Bad (score=0)
 
 
 class ChatMessageDTO(BaseModel):

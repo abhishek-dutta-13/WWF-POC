@@ -86,13 +86,23 @@ async def generate_microlearning_quickbase(
         
         # Generate micro-learning modules using RAG (traced in LangSmith under micro_learning)
         logger.info(f"Generating micro-learning modules for category: {category}")
-        with microlearning_trace(course_id):
+        with microlearning_trace(
+            course_id,
+            inputs={"category": category, "language": language, "course_id": course_id}
+        ) as run_tree:
             modules = generator.generate_microlearning_modules(
                 category=category,
                 language=language,
                 top_k_chunks=20,
                 max_chunks_for_llm=15
             )
+            if run_tree:
+                run_tree.end(outputs={
+                    "chapter_count": len(modules.get("chapters", [])),
+                    "course_id": course_id,
+                    "category": category,
+                    "error": modules.get("error"),
+                })
         
         # Check for errors
         if 'error' in modules and not modules.get('chapters'):
@@ -213,13 +223,23 @@ async def generate_microlearning_modules_only(
         
         # Generate micro-learning modules using RAG (traced in LangSmith under micro_learning)
         logger.info(f"Generating micro-learning modules for category: {category}")
-        with microlearning_trace(course_id):
+        with microlearning_trace(
+            course_id,
+            inputs={"category": category, "language": language, "course_id": course_id}
+        ) as run_tree:
             modules = generator.generate_microlearning_modules(
                 category=category,
                 language=language,
                 top_k_chunks=20,
                 max_chunks_for_llm=15
             )
+            if run_tree:
+                run_tree.end(outputs={
+                    "chapter_count": len(modules.get("chapters", [])),
+                    "course_id": course_id,
+                    "category": category,
+                    "error": modules.get("error"),
+                })
         
         # Check for errors
         if 'error' in modules and not modules.get('chapters'):

@@ -6,6 +6,7 @@ import logging
 from typing import Dict
 from groq import Groq
 from chatbot.models import UserContext
+from langsmith_integration.tracer import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +87,7 @@ Remember:
         self.groq_client = Groq(api_key=groq_api_key)
         logger.info(f"[Response Agent] Initialized with model chain: {' -> '.join(self.models)}")
     
+    @traceable(run_type="llm", name="chatbot_response_generation")
     def generate_response(
         self,
         query: str,
