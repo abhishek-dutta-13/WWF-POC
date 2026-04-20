@@ -98,9 +98,10 @@ async def generate_microlearning_quickbase(
             )
             if run_tree:
                 run_tree.end(outputs={
+                    "categoryName": modules.get("categoryName", category),
+                    "chapters": modules.get("chapters", []),
                     "chapter_count": len(modules.get("chapters", [])),
                     "course_id": course_id,
-                    "category": category,
                     "error": modules.get("error"),
                 })
         
@@ -235,9 +236,10 @@ async def generate_microlearning_modules_only(
             )
             if run_tree:
                 run_tree.end(outputs={
+                    "categoryName": modules.get("categoryName", category),
+                    "chapters": modules.get("chapters", []),
                     "chapter_count": len(modules.get("chapters", [])),
                     "course_id": course_id,
-                    "category": category,
                     "error": modules.get("error"),
                 })
         
